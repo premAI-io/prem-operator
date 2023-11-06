@@ -1,0 +1,12 @@
+apiVersion: deployments.premlabs.io/v1alpha1
+kind: SimpleDeployments
+metadata:
+  labels:
+    app.kubernetes.io/name: simpledeployments
+    app.kubernetes.io/instance: simpledeployments-sample
+    app.kubernetes.io/part-of: saas-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: saas-operator
+  name: simpledeployments-sample
+spec:
+  # TODO(user): Add fields here

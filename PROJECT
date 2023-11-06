@@ -1,0 +1,19 @@
+domain: premlabs.io
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: saas-operator
+repo: github.com/premAI-io/saas-controller
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: premlabs.io
+  group: deployments
+  kind: SimpleDeployments
+  path: github.com/premAI-io/saas-controller/api/v1alpha1
+  version: v1alpha1
+version: "3"
