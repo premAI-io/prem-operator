@@ -179,7 +179,6 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-GINKGO ?= $(LOCALBIN)/ginkgo
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
@@ -200,10 +199,6 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-
-ginkgo: $(GINKGO) ## Download ginkgo locally if necessary.
-$(GINKGO): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
 
 .PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
@@ -303,11 +298,6 @@ kind-setup:
 kind-setup-image: docker-build
 	kind load docker-image --name $(CLUSTER_NAME) ${IMG}
 
-.PHONY: test_deps
-test_deps:
-	go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
-	go install github.com/onsi/gomega/...
-
 .PHONY: unit-tests
 unit-tests: test_deps
 	go run github.com/onsi/ginkgo/v2/ginkgo -r -v  --covermode=atomic --coverprofile=coverage.out -p -r ./pkg/...
@@ -315,7 +305,7 @@ unit-tests: test_deps
 e2e-tests:
 	KUBE_VERSION=${KUBE_VERSION} $(ROOT_DIR)/script/test.sh
 
-kind-e2e-tests: ginkgo kind-setup install deploy e2e-tests
+kind-e2e-tests: kind-setup install deploy e2e-tests
 
 clean:
 	kind delete cluster --name ${CLUSTER_NAME} || true
