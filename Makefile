@@ -310,10 +310,10 @@ test_deps:
 
 .PHONY: unit-tests
 unit-tests: test_deps
-	$(GINKGO) -r -v  --covermode=atomic --coverprofile=coverage.out -p -r ./pkg/...
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -v  --covermode=atomic --coverprofile=coverage.out -p -r ./pkg/...
 
 e2e-tests:
-	GINKGO=$(GINKGO) KUBE_VERSION=${KUBE_VERSION} $(ROOT_DIR)/script/test.sh
+	KUBE_VERSION=${KUBE_VERSION} $(ROOT_DIR)/script/test.sh
 
 kind-e2e-tests: ginkgo kind-setup install deploy e2e-tests
 
