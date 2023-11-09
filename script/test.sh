@@ -16,9 +16,49 @@ nodes:
         nodeRegistration:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
+    extraPortMappings:
+    - containerPort: 32080
+      hostPort: 8080
+      protocol: TCP
+    - containerPort: 32443
+      hostPort: 8443
+      protocol: TCP
+    - containerPort: 32090
+      hostPort: 9000
+      protocol: TCP
+EOF
+cat << EOF > traefik-values.yaml
+---
+providers:
+  kubernetesCRD:
+    namespaces:
+      - default
+      - traefik
+  kubernetesIngress:
+    namespaces:
+      - default
+      - traefik
+
+ports:
+  traefik:
+    expose: true
+    nodePort: 32090
+  web:
+    nodePort: 32080
+  websecure:
+    nodePort: 32443
 EOF
     kind create cluster --name $CLUSTER_NAME --config kind.config
     rm -rf kind.config
+    helm repo add traefik https://traefik.github.io/charts
+    helm repo update
+    helm install traefik traefik/traefik --values traefik-values.yaml
+    rm -rf traefik-values.yaml
+fi
+
+# IF CREATE_ONLY exits here
+if [ "$CREATE_ONLY" = "true" ]; then
+    exit 0
 fi
 
 set -e

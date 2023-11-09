@@ -8,20 +8,12 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - ingress
-  verbs:
-  - create
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - services
   verbs:
   - create
   - get
   - list
+  - update
   - watch
 - apiGroups:
   - apps
@@ -61,3 +53,15 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

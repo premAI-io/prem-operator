@@ -1,8 +1,14 @@
 # saas-operator
-// TODO(user): Add simple overview of use/purpose
+
+Operator for ML Deployments, services, and operations.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+
+The Prem controller is responsible of managing the lifecycle of the following resources:
+- ML Deployments
+- Fine tuning jobs
+- Model serving services (VectorDB, Tensorflow Serving, etc.)
+- Model serving operations (e.g. model serving updates)
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.

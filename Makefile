@@ -292,7 +292,7 @@ docker-push: ## Push docker image with the manager.
 CLUSTER_NAME?="saas-controller-e2e"
 
 kind-setup:
-	kind create cluster --name ${CLUSTER_NAME} || true
+	CREATE_ONLY=true KUBE_VERSION=${KUBE_VERSION} $(ROOT_DIR)/script/test.sh
 	$(MAKE) kind-setup-image
 
 kind-setup-image: docker-build
@@ -300,7 +300,7 @@ kind-setup-image: docker-build
 
 .PHONY: unit-tests
 unit-tests: test_deps
-	go run github.com/onsi/ginkgo/v2/ginkgo -r -v  --covermode=atomic --coverprofile=coverage.out -p -r ./pkg/...
+	go run github.com/onsi/ginkgo/v2/ginkgo --randomize-all -p -r -v  --covermode=atomic --coverprofile=coverage.out -p -r ./pkg/...
 
 e2e-tests:
 	KUBE_VERSION=${KUBE_VERSION} $(ROOT_DIR)/script/test.sh

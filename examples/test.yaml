@@ -1,0 +1,8 @@
+apiVersion: deployments.premlabs.io/v1alpha1
+kind: SimpleDeployments
+metadata:
+  name: simple
+  namespace: default
+spec:
+  MLEngine: localai
+  domain: "foo.127.0.0.1.nip.io"

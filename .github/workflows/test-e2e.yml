@@ -2,6 +2,7 @@
 name: 'test controller'
 
 on:
+  pull_request:
   push:
     branches:
       - master
