@@ -147,6 +147,12 @@ spec:
                   - name
                   type: object
                 type: array
+              models:
+                items:
+                  additionalProperties:
+                    type: string
+                  type: object
+                type: array
               options:
                 additionalProperties:
                   type: string

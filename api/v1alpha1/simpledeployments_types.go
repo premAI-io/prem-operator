@@ -33,6 +33,8 @@ type SimpleDeploymentsSpec struct {
 	MLEngine string            `json:"MLEngine,omitempty"`
 	Options  map[string]string `json:"options,omitempty"`
 	Env      []v1.EnvVar       `json:"env,omitempty"`
+
+	Models []map[string]string `json:"models,omitempty"`
 }
 
 // SimpleDeploymentsStatus defines the observed state of SimpleDeployments

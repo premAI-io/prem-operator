@@ -6,3 +6,6 @@ metadata:
 spec:
   MLEngine: localai
   domain: "foo.127.0.0.1.nip.io"
+  models:
+  - name: "gpt-4"
+    url: https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGUF/resolve/main/WizardLM-7B-uncensored.Q2_K.gguf

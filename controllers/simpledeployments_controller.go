@@ -72,6 +72,7 @@ func (r *SimpleDeploymentsReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		e := &engines.LocalAI{
 			Name:      ent.Name,
 			Namespace: ent.Namespace,
+			Models:    ent.Spec.Models,
 			Options:   ent.Spec.Options,
 		}
 

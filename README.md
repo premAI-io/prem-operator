@@ -14,6 +14,10 @@ The Prem controller is responsible of managing the lifecycle of the following re
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
+## Requirements
+
+- An ingress controller (e.g. traefik)
+
 ### Running on the cluster
 1. Install Instances of Custom Resources:
 
@@ -31,6 +35,18 @@ make docker-build docker-push IMG=<some-registry>/saas-operator:tag
 
 ```sh
 make deploy IMG=<some-registry>/saas-operator:tag
+```
+
+### Example(locally with kind):
+
+```
+make kind-setup deploy
+kubectl apply -f example/test.yaml
+curl http://foo.127.0.0.1.nip.io:8080/v1/completions -H "Content-Type: application/json" -d '{
+     "model": "gpt-4",              
+     "prompt": "How are you?",
+     "temperature": 0.1 
+   }'
 ```
 
 ### Uninstall CRDs
