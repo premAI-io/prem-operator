@@ -40,7 +40,7 @@ make deploy IMG=<some-registry>/saas-operator:tag
 ### Example(locally with kind):
 
 ```
-make kind-setup deploy
+make kind-setup install deploy
 kubectl apply -f example/test.yaml
 curl http://foo.127.0.0.1.nip.io:8080/v1/completions -H "Content-Type: application/json" -d '{
      "model": "gpt-4",              
