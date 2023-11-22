@@ -60,7 +60,8 @@ jobs:
           chmod +x helmify
           sudo mv helmify /usr/bin/helmify
           make helm-controller
-          version="0.0.1+main-${GITHUB_SHA:0:7}-$(date +%s)"
+          version="$(git describe --always --tags)"
+          #version="0.0.1+main-${GITHUB_SHA:0:7}-$(date +%s)"
           app_version="0.0.1"
           echo "${{ secrets.STAGING_DOCKER_PASSWORD }}" | helm registry login ${{ secrets.STAGING_SERVER }} -u '${{ secrets.STAGING_DOCKER_USERNAME }}' --password-stdin
           helm package --version "${version}" --app-version $app_version charts/saas-controller
