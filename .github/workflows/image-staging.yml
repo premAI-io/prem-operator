@@ -64,7 +64,7 @@ jobs:
           chmod +x helmify
           sudo mv helmify /usr/bin/helmify
           make helm-controller
-          version="$(git describe --always --tags)"
+          version="0.0.1-$(date +%s)
           echo "Packaging version $version"
           #version="0.0.1+main-${GITHUB_SHA:0:7}-$(date +%s)"
           app_version="0.0.1"
