@@ -50,3 +50,14 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Push Helm chart
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          version="0.0.1+main-${GITHUB_SHA:0:7}-$(date +%s)"
+          app_version="0.0.1"
+          echo "${{ secrets.STAGING_DOCKER_PASSWORD }}" | helm registry login ${{ secrets.STAGING_SERVER }} -u '${{ secrets.STAGING_DOCKER_USERNAME }}' --password-stdin
+          helm package --version "${version}" --app-version $app_version charts/saas-controller
+          helm package --version "${version}" --app-version $app_version charts/saas-crds
+          helm push saas-controller-${version}.tgz oci://${{ env.REGISTRY }}/saas-controller
+          helm push saas-crds-${version}.tgz oci://${{ env.REGISTRY }}/saas-controller
