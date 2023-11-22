@@ -313,13 +313,8 @@ clean:
 charts:
 	mkdir charts
 
-.PHONY: helm-crds
-helm-crds: manifests kustomize charts ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | helmify saas-crds
-	mv saas-crds charts
-
 .PHONY: helm-controller
 helm-controller: manifests kustomize charts ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | helmify saas-controller
+	$(KUSTOMIZE) build config/default | helmify -image-pull-secrets -crd-dir saas-controller
 	mv saas-controller charts
