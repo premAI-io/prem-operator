@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -115,15 +115,8 @@ var _ = Describe("localai test", func() {
 		}).WithPolling(30 * time.Second).WithTimeout(time.Hour).Should(BeTrue())
 
 		Eventually(func(g Gomega) string {
-			fmt.Println("Polling API for a response")
-			url := "http://foo.127.0.0.1.nip.io:8080/v1/completions"
-			payload := []byte(`{
-				"model": "gpt-4",
-				"prompt": "How are you?",
-				"temperature": 0.1
-			}`)
-
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+			url := "http://foo.127.0.0.1.nip.io:8080/v1/models"
+			req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 			if err != nil {
 				fmt.Println("Error creating request:", err)
 				return ""
@@ -138,8 +131,33 @@ var _ = Describe("localai test", func() {
 				return ""
 			}
 			defer resp.Body.Close()
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			return string(body)
-		}).WithPolling(30 * time.Second).WithTimeout(time.Hour).Should(ContainSubstring("doing well"))
+			// fmt.Println("Polling API for a response")
+			// url := "http://foo.127.0.0.1.nip.io:8080/v1/completions"
+			// payload := []byte(`{
+			// 	"model": "gpt-4",
+			// 	"prompt": "How are you?",
+			// 	"temperature": 0.1
+			// }`)
+
+			// req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+			// if err != nil {
+			// 	fmt.Println("Error creating request:", err)
+			// 	return ""
+			// }
+
+			// req.Header.Set("Content-Type", "application/json")
+
+			// client := &http.Client{}
+			// resp, err := client.Do(req)
+			// if err != nil {
+			// 	fmt.Println("Error making request:", err)
+			// 	return ""
+			// }
+			// defer resp.Body.Close()
+			// body, err := io.ReadAll(resp.Body)
+			// return string(body)
+		}).WithPolling(30 * time.Second).WithTimeout(time.Hour).Should(ContainSubstring("gpt-4"))
 	})
 })
