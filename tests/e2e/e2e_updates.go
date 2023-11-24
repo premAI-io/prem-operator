@@ -2,14 +2,13 @@ package e2e_test
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
-	networkv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -18,9 +17,20 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
+func randomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(result)
+}
+
 var _ = Describe("simple test", func() {
 	var artifactName string
-	var sds, pods, svc, ingr dynamic.ResourceInterface
+	var sds, pods dynamic.ResourceInterface
 	var scheme *runtime.Scheme
 	//var artifactLabelSelector labels.Selector
 
@@ -32,8 +42,6 @@ var _ = Describe("simple test", func() {
 
 		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "simpledeployments"}).Namespace("default")
 		pods = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("default")
-		svc = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "services"}).Namespace("default")
-		ingr = k8s.Resource(schema.GroupVersionResource{Group: networkv1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "ingresses"}).Namespace("default")
 
 		artifact := &api.SimpleDeployments{
 			TypeMeta: metav1.TypeMeta{
@@ -60,41 +68,50 @@ var _ = Describe("simple test", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	It("starts a deployment with associated ingress and services", func() {
+	It("starts a deployment and updates it", func() {
 		By("starting the workload with the associated label")
 		Eventually(findWorkloadPod(pods, artifactName)).WithPolling(30 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+		u, err := sds.Get(context.Background(), artifactName, metav1.GetOptions{})
+		Expect(err).ToNot(HaveOccurred())
 
-		Eventually(func(g Gomega) bool {
-			list, err := svc.List(context.TODO(), metav1.ListOptions{})
-			g.Expect(err).ToNot(HaveOccurred())
-			found := false
+		sd := &api.SimpleDeployments{}
+		err = runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, sd)
+		Expect(err).ToNot(HaveOccurred())
 
-			for _, sv := range list.Items {
-				p := &corev1.Service{}
-				err := runtime.DefaultUnstructuredConverter.FromUnstructured(sv.Object, p)
+		testString := randomString(5)
+
+		sd.Spec.Env = append(sd.Spec.Env, corev1.EnvVar{
+			Name:  "TEST",
+			Value: testString,
+		})
+
+		un, err := runtime.DefaultUnstructuredConverter.ToUnstructured(sd)
+		Expect(err).ToNot(HaveOccurred())
+
+		d := &unstructured.Unstructured{}
+		d.SetUnstructuredContent(un)
+
+		_, err = sds.Update(context.Background(), d, metav1.UpdateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(
+			func(g Gomega) bool {
+				list, err := pods.List(context.TODO(), metav1.ListOptions{})
 				g.Expect(err).ToNot(HaveOccurred())
-				if v, ok := p.Annotations[resources.DefaultAnnotation]; ok && v == artifactName {
-					found = ok
+				found := false
+
+				for _, pod := range list.Items {
+					p := &corev1.Pod{}
+					err := runtime.DefaultUnstructuredConverter.FromUnstructured(pod.Object, p)
+					g.Expect(err).ToNot(HaveOccurred())
+					envs := p.Spec.Containers[0].Env
+					for _, env := range envs {
+						if env.Name == "TEST" && env.Value == testString {
+							found = true
+						}
+					}
 				}
-			}
-
-			return found
-		}).WithTimeout(time.Minute).Should(BeTrue())
-		Eventually(func(g Gomega) bool {
-			list, err := ingr.List(context.TODO(), metav1.ListOptions{})
-			g.Expect(err).ToNot(HaveOccurred())
-			found := false
-
-			for _, ingress := range list.Items {
-				p := &networkv1.Ingress{}
-				err := runtime.DefaultUnstructuredConverter.FromUnstructured(ingress.Object, p)
-				g.Expect(err).ToNot(HaveOccurred())
-				if v, ok := p.Annotations[resources.DefaultAnnotation]; ok && v == artifactName {
-					found = ok
-				}
-			}
-
-			return found
-		}).WithTimeout(time.Minute).Should(BeTrue())
+				return found
+			}).WithPolling(30 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
 	})
 })

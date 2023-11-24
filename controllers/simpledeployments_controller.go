@@ -74,6 +74,7 @@ func (r *SimpleDeploymentsReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			Namespace: ent.Namespace,
 			Models:    ent.Spec.Models,
 			Options:   ent.Spec.Options,
+			Env:       ent.Spec.Env,
 		}
 
 		requeue, err := mldeployment.Reconcile(ent, ctx, r.Client, e)
