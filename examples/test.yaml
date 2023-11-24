@@ -1,11 +1,28 @@
-apiVersion: deployments.premlabs.io/v1alpha1
-kind: SimpleDeployments
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
 metadata:
   name: simple
   namespace: default
 spec:
-  MLEngine: localai
-  domain: "foo.127.0.0.1.nip.io"
+  # single node instance
+  # no dashboard support 
+  engine:
+    name: "localai" 
+  endpoint:
+    -  domain: "foo.127.0.0.1.nip.io"
+      port: 8080 
   models:
-  - name: "gpt-4"
-    url: https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGUF/resolve/main/WizardLM-7B-uncensored.Q2_K.gguf
+    - custom:
+        format: "gguf" 
+        name: "gpt-4" 
+        url: "https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGUF/resolve/main/WizardLM-7B-uncensored.Q2_K.gguf" 
+        checksum: "sha1:"
+  service:
+    annotations:
+    labels:
+  ingress:
+    annotations:
+    labels:
+  deployment:
+    annotations:
+    labels:

@@ -1,4 +1,4 @@
-package mldeployment
+package aideployment
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	deploymentsv1alpha1 "github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -20,8 +20,7 @@ type MLEngine interface {
 	Deployment(owner metav1.Object) (*appsv1.Deployment, error)
 }
 
-func Reconcile(sd deploymentsv1alpha1.SimpleDeployments, ctx context.Context, c ctrlClient.Client, mle MLEngine) (bool, error) {
-
+func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Client, mle MLEngine) (bool, error) {
 	deployment, err := mle.Deployment(&sd.ObjectMeta)
 	if err != nil {
 		return false, err
@@ -37,7 +36,13 @@ func Reconcile(sd deploymentsv1alpha1.SimpleDeployments, ctx context.Context, c 
 			return false, err
 		}
 	} else { // Update a deployment
-		if err := c.Update(ctx, deployment); err != nil {
+		f := &appsv1.Deployment{}
+		if err := c.Get(ctx, types.NamespacedName{Namespace: sd.GetNamespace(), Name: sd.GetName()}, f); err != nil {
+			return false, err
+		}
+		copy := f.DeepCopy()
+		copy.Spec = deployment.Spec
+		if err := c.Update(ctx, copy); err != nil {
 			return false, err
 		}
 
@@ -72,16 +77,31 @@ func Reconcile(sd deploymentsv1alpha1.SimpleDeployments, ctx context.Context, c 
 			return false, err
 		}
 	} else { // Update a deployment
-		if err := c.Update(ctx, svc); err != nil {
+		f := &v1.Service{}
+		if err := c.Get(ctx, types.NamespacedName{Namespace: sd.GetNamespace(), Name: sd.GetName()}, f); err != nil {
 			return false, err
 		}
+		copy := f.DeepCopy()
+		copy.Spec = svcK.Spec
+		if err := c.Update(ctx, copy); err != nil {
+			return false, err
+		}
+	}
+
+	if len(sd.Spec.Endpoint) == 0 {
+		return false, nil
+	}
+
+	domains := []string{}
+	for _, e := range sd.Spec.Endpoint {
+		domains = append(domains, e.Domain)
 	}
 
 	ingress := resources.DesiredIngress(
 		&sd.ObjectMeta,
 		deployment.Name,
 		deployment.Namespace,
-		sd.Spec.Domain,
+		domains,
 		deployment.Name,
 		"",
 		int(mle.Port()),
@@ -98,7 +118,13 @@ func Reconcile(sd deploymentsv1alpha1.SimpleDeployments, ctx context.Context, c 
 			return false, err
 		}
 	} else { // Update a deployment
-		if err := c.Update(ctx, ingress); err != nil {
+		f := &networkv1.Ingress{}
+		if err := c.Get(ctx, types.NamespacedName{Namespace: sd.GetNamespace(), Name: sd.GetName()}, f); err != nil {
+			return false, err
+		}
+		copy := f.DeepCopy()
+		copy.Spec = f.Spec
+		if err := c.Update(ctx, copy); err != nil {
 			return false, err
 		}
 	}

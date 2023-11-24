@@ -26,20 +26,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	deploymentsv1alpha1 "github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/controllers/aideployment"
 	"github.com/premAI-io/saas-controller/controllers/engines"
-	"github.com/premAI-io/saas-controller/controllers/mldeployment"
 )
 
-// SimpleDeploymentsReconciler reconciles a SimpleDeployments object
-type SimpleDeploymentsReconciler struct {
+// AIDeploymentReconciler reconciles a AIDeployment object
+type AIDeploymentReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=deployments.premlabs.io,resources=simpledeployments,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=deployments.premlabs.io,resources=simpledeployments/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=deployments.premlabs.io,resources=simpledeployments/finalizers,verbs=update
+//+kubebuilder:rbac:groups=premlabs.io,resources=aideployments,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=premlabs.io,resources=aideployments/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=premlabs.io,resources=aideployments/finalizers,verbs=update
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="",resources=services,verbs=create;get;list;update;watch
@@ -47,18 +47,18 @@ type SimpleDeploymentsReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the SimpleDeployments object against the actual cluster state, and then
+// the AIDeployment object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *SimpleDeploymentsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	// Creates a deployment targeting a service
 	// TODO(user): your logic here
-	var ent deploymentsv1alpha1.SimpleDeployments
+	var ent v1alpha1.AIDeployment
 	if err := r.Get(ctx, req.NamespacedName, &ent); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -66,18 +66,19 @@ func (r *SimpleDeploymentsReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	switch strings.ToLower(ent.Spec.MLEngine) {
+	switch strings.ToLower(ent.Spec.Engine.Name) {
 	case engines.LocalAIEngine:
 		// Create a deployment targeting a service
 		e := &engines.LocalAI{
-			Name:      ent.Name,
+			Endpoint:  ent.Spec.Endpoint,
 			Namespace: ent.Namespace,
 			Models:    ent.Spec.Models,
-			Options:   ent.Spec.Options,
 			Env:       ent.Spec.Env,
+			Name:      ent.Name,
+			Options:   ent.Spec.Engine.Options,
 		}
 
-		requeue, err := mldeployment.Reconcile(ent, ctx, r.Client, e)
+		requeue, err := aideployment.Reconcile(ent, ctx, r.Client, e)
 		if requeue {
 			return ctrl.Result{Requeue: true}, err
 		}
@@ -88,8 +89,8 @@ func (r *SimpleDeploymentsReconciler) Reconcile(ctx context.Context, req ctrl.Re
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *SimpleDeploymentsReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *AIDeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&deploymentsv1alpha1.SimpleDeployments{}).
+		For(&v1alpha1.AIDeployment{}).
 		Complete(r)
 }

@@ -10,12 +10,12 @@ import (
 
 // DesiredIngress generates the desired ingress
 // XXX: Probably doesn't do the correct thing for now
-func DesiredIngress(owner metav1.Object, name, namespace, hostname, svcName, clusterIssuer string, port int, labels, annotations map[string]string) *networkv1.Ingress {
+func DesiredIngress(owner metav1.Object, name, namespace string, hostname []string, svcName, clusterIssuer string, port int, labels, annotations map[string]string) *networkv1.Ingress {
 	t := networkv1.PathType("Prefix")
-	rules := []networkv1.IngressRule{
-
-		networkv1.IngressRule{
-			Host: hostname,
+	rules := []networkv1.IngressRule{}
+	for _, h := range hostname {
+		rules = append(rules, networkv1.IngressRule{
+			Host: h,
 			IngressRuleValue: networkv1.IngressRuleValue{
 				HTTP: &networkv1.HTTPIngressRuleValue{
 					Paths: []networkv1.HTTPIngressPath{{
@@ -30,7 +30,7 @@ func DesiredIngress(owner metav1.Object, name, namespace, hostname, svcName, clu
 					}},
 				},
 			},
-		},
+		})
 	}
 
 	spec := networkv1.IngressSpec{
@@ -46,7 +46,7 @@ func DesiredIngress(owner metav1.Object, name, namespace, hostname, svcName, clu
 	if clusterIssuer != "" {
 		tlsEntry := []networkv1.IngressTLS{
 			networkv1.IngressTLS{
-				Hosts:      []string{hostname},
+				Hosts:      hostname,
 				SecretName: fmt.Sprintf("%s-tls", svcName),
 			}}
 

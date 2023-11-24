@@ -1,7 +1,7 @@
 package resources
 
 import (
-	deploymentsv1alpha1 "github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -25,9 +25,9 @@ func GenDefaultLabels(s string) map[string]string {
 func GenOwner(obj metav1.Object) []metav1.OwnerReference {
 	return []metav1.OwnerReference{
 		*metav1.NewControllerRef(obj, schema.GroupVersionKind{
-			Group:   deploymentsv1alpha1.GroupVersion.Group,
-			Version: deploymentsv1alpha1.GroupVersion.Version,
-			Kind:    deploymentsv1alpha1.ResourceName,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
+			Kind:    v1alpha1.ResourceName,
 		}),
 	}
 }

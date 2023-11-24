@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -28,7 +29,7 @@ func randomString(length int) string {
 	return string(result)
 }
 
-var _ = Describe("simple test", func() {
+var _ = Describe("update test", func() {
 	var artifactName string
 	var sds, pods dynamic.ResourceInterface
 	var scheme *runtime.Scheme
@@ -40,26 +41,26 @@ var _ = Describe("simple test", func() {
 		err := api.AddToScheme(scheme)
 		Expect(err).ToNot(HaveOccurred())
 
-		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "simpledeployments"}).Namespace("default")
+		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "aideployments"}).Namespace("default")
 		pods = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("default")
 
-		artifact := &api.SimpleDeployments{
+		artifact := &api.AIDeployment{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "SimpleDeployments",
+				Kind:       "AIDeployment",
 				APIVersion: api.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "simple-",
+				GenerateName: "update-",
 			},
-			Spec: api.SimpleDeploymentsSpec{
-				MLEngine: "localai",
+			Spec: api.AIDeploymentSpec{
+				Engine: api.AIEngine{Name: "localai"},
 			},
 		}
 
 		uArtifact := unstructured.Unstructured{}
 		uArtifact.Object, _ = runtime.DefaultUnstructuredConverter.ToUnstructured(artifact)
 		resp, err := sds.Create(context.TODO(), &uArtifact, metav1.CreateOptions{})
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).ToNot(HaveOccurred(), fmt.Sprint(artifact))
 		artifactName = resp.GetName()
 	})
 
@@ -74,7 +75,7 @@ var _ = Describe("simple test", func() {
 		u, err := sds.Get(context.Background(), artifactName, metav1.GetOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		sd := &api.SimpleDeployments{}
+		sd := &api.AIDeployment{}
 		err = runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, sd)
 		Expect(err).ToNot(HaveOccurred())
 

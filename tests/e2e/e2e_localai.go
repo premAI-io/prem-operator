@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
+	networkv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,7 +25,7 @@ import (
 
 var _ = Describe("localai test", func() {
 	var artifactName string
-	var sds, pods dynamic.ResourceInterface
+	var sds, pods, svc, ingr dynamic.ResourceInterface
 	var scheme *runtime.Scheme
 
 	BeforeEach(func() {
@@ -33,23 +34,33 @@ var _ = Describe("localai test", func() {
 		err := api.AddToScheme(scheme)
 		Expect(err).ToNot(HaveOccurred())
 
-		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "simpledeployments"}).Namespace("default")
+		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "aideployments"}).Namespace("default")
+		svc = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "services"}).Namespace("default")
+		ingr = k8s.Resource(schema.GroupVersionResource{Group: networkv1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "ingresses"}).Namespace("default")
 
-		artifact := &api.SimpleDeployments{
+		artifact := &api.AIDeployment{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "SimpleDeployments",
+				Kind:       "AIDeployment",
 				APIVersion: api.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				GenerateName: "localai-",
 			},
-			Spec: api.SimpleDeploymentsSpec{
-				MLEngine: "localai",
-				Domain:   "foo.127.0.0.1.nip.io",
-				Models: []map[string]string{
+			Spec: api.AIDeploymentSpec{
+				Engine: api.AIEngine{
+					Name: "localai",
+				},
+				Endpoint: []api.Endpoint{{
+					Domain: "foo.127.0.0.1.nip.io",
+				},
+				},
+				Models: []api.AIModel{
 					{
-						"name": "gpt-4",
-						"url":  "https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGUF/resolve/main/WizardLM-7B-uncensored.Q2_K.gguf",
+						Custom: &api.AIModelCustom{
+							Format: "gguf",
+							Name:   "gpt-4",
+							Url:    "https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGUF/resolve/main/WizardLM-7B-uncensored.Q2_K.gguf",
+						},
 					},
 				},
 			},
@@ -61,6 +72,7 @@ var _ = Describe("localai test", func() {
 		resp, err := sds.Create(context.TODO(), &uArtifact, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		artifactName = resp.GetName()
+		print("artifaceName: ", artifactName)
 	})
 
 	AfterEach(func() {
@@ -75,7 +87,6 @@ var _ = Describe("localai test", func() {
 			g.Expect(err).ToNot(HaveOccurred())
 			found := false
 
-			fmt.Println("PODS")
 			for _, pod := range list.Items {
 				p := &corev1.Pod{}
 				err := runtime.DefaultUnstructuredConverter.FromUnstructured(pod.Object, p)
@@ -83,7 +94,6 @@ var _ = Describe("localai test", func() {
 				if v, ok := p.Labels[resources.DefaultAnnotation]; ok && v == artifactName {
 					found = ok
 				}
-				fmt.Println(pod)
 			}
 
 			return found
@@ -94,7 +104,6 @@ var _ = Describe("localai test", func() {
 			g.Expect(err).ToNot(HaveOccurred())
 			found := false
 
-			fmt.Println("PODS")
 			deploymentPod := &corev1.Pod{}
 			for _, pod := range list.Items {
 				p := &corev1.Pod{}
@@ -103,7 +112,6 @@ var _ = Describe("localai test", func() {
 				if v, ok := p.Labels[resources.DefaultAnnotation]; ok && v == artifactName {
 					found = ok
 					deploymentPod = p
-					fmt.Println(pod)
 				}
 			}
 
@@ -113,6 +121,39 @@ var _ = Describe("localai test", func() {
 
 			return false
 		}).WithPolling(30 * time.Second).WithTimeout(time.Hour).Should(BeTrue())
+
+		Eventually(func(g Gomega) bool {
+			list, err := svc.List(context.TODO(), metav1.ListOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			found := false
+
+			for _, sv := range list.Items {
+				p := &corev1.Service{}
+				err := runtime.DefaultUnstructuredConverter.FromUnstructured(sv.Object, p)
+				g.Expect(err).ToNot(HaveOccurred())
+				if v, ok := p.Annotations[resources.DefaultAnnotation]; ok && v == artifactName {
+					found = ok
+				}
+			}
+
+			return found
+		}).WithTimeout(time.Minute).Should(BeTrue())
+		Eventually(func(g Gomega) bool {
+			list, err := ingr.List(context.TODO(), metav1.ListOptions{})
+			g.Expect(err).ToNot(HaveOccurred())
+			found := false
+
+			for _, ingress := range list.Items {
+				p := &networkv1.Ingress{}
+				err := runtime.DefaultUnstructuredConverter.FromUnstructured(ingress.Object, p)
+				g.Expect(err).ToNot(HaveOccurred())
+				if v, ok := p.Annotations[resources.DefaultAnnotation]; ok && v == artifactName {
+					found = ok
+				}
+			}
+
+			return found
+		}).WithTimeout(time.Minute).Should(BeTrue())
 
 		Eventually(func(g Gomega) string {
 			url := "http://foo.127.0.0.1.nip.io:8080/v1/models"
@@ -132,32 +173,11 @@ var _ = Describe("localai test", func() {
 			}
 			defer resp.Body.Close()
 			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println("Error reading request body:", err)
+				return ""
+			}
 			return string(body)
-			// fmt.Println("Polling API for a response")
-			// url := "http://foo.127.0.0.1.nip.io:8080/v1/completions"
-			// payload := []byte(`{
-			// 	"model": "gpt-4",
-			// 	"prompt": "How are you?",
-			// 	"temperature": 0.1
-			// }`)
-
-			// req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-			// if err != nil {
-			// 	fmt.Println("Error creating request:", err)
-			// 	return ""
-			// }
-
-			// req.Header.Set("Content-Type", "application/json")
-
-			// client := &http.Client{}
-			// resp, err := client.Do(req)
-			// if err != nil {
-			// 	fmt.Println("Error making request:", err)
-			// 	return ""
-			// }
-			// defer resp.Body.Close()
-			// body, err := io.ReadAll(resp.Body)
-			// return string(body)
 		}).WithPolling(30 * time.Second).WithTimeout(time.Hour).Should(ContainSubstring("gpt-4"))
 	})
 })

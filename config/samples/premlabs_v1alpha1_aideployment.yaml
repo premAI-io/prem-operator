@@ -1,0 +1,12 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment
+metadata:
+  labels:
+    app.kubernetes.io/name: aideployment
+    app.kubernetes.io/instance: aideployment-sample
+    app.kubernetes.io/part-of: saas-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: saas-operator
+  name: aideployment-sample
+spec:
+  # TODO(user): Add fields here

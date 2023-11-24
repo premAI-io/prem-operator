@@ -1,4 +1,4 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
-- deployments_v1alpha1_simpledeployments.yaml
+- premlabs_v1alpha1_aideployment.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

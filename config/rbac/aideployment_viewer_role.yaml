@@ -1,31 +1,27 @@
-# permissions for end users to edit simpledeployments.
+# permissions for end users to view aideployment.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: simpledeployments-editor-role
+    app.kubernetes.io/instance: aideployment-viewer-role
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: saas-operator
     app.kubernetes.io/part-of: saas-operator
     app.kubernetes.io/managed-by: kustomize
-  name: simpledeployments-editor-role
+  name: aideployment-viewer-role
 rules:
 - apiGroups:
-  - deployments.premlabs.io
+  - premlabs.io
   resources:
-  - simpledeployments
+  - aideployments
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
-  - deployments.premlabs.io
+  - premlabs.io
   resources:
-  - simpledeployments/status
+  - aideployment/status
   verbs:
   - get
