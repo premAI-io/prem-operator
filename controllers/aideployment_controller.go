@@ -69,15 +69,7 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	switch strings.ToLower(ent.Spec.Engine.Name) {
 	case engines.LocalAIEngine:
 		// Create a deployment targeting a service
-		e := &engines.LocalAI{
-			Endpoint:  ent.Spec.Endpoint,
-			Namespace: ent.Namespace,
-			Models:    ent.Spec.Models,
-			Env:       ent.Spec.Env,
-			Name:      ent.Name,
-			Options:   ent.Spec.Engine.Options,
-		}
-
+		e := engines.NewLocalAI(&ent)
 		requeue, err := aideployment.Reconcile(ent, ctx, r.Client, e)
 		if requeue {
 			return ctrl.Result{Requeue: true}, err

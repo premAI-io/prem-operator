@@ -12,19 +12,17 @@ import (
 )
 
 type LocalAI struct {
-	Name        string
-	Namespace   string
-	ServicePort int32
-	Options     map[string]string
-	Endpoint    []a1.Endpoint
-	Env         []v1.EnvVar
-	Models      []a1.AIModel
+	AIDeployment *a1.AIDeployment
 }
 
+func NewLocalAI(ai *a1.AIDeployment) *LocalAI {
+	return &LocalAI{AIDeployment: ai}
+
+}
 func (l *LocalAI) Port() int32 {
-	if l.ServicePort != 0 {
-		return l.ServicePort
-	}
+	// if l.ServicePort != 0 {
+	// 	return l.ServicePort
+	// }
 	return 8080
 }
 
@@ -32,25 +30,37 @@ const LocalAIEngine = "localai"
 
 func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	objMeta := metav1.ObjectMeta{
-		Name:            l.Name,
-		Namespace:       l.Namespace,
+		Name:            l.AIDeployment.Name,
+		Namespace:       l.AIDeployment.Namespace,
 		OwnerReferences: resources.GenOwner(owner),
 	}
 
 	imageTag := "latest"
-	if l.Options["imageTag"] != "" {
-		imageTag = l.Options["imageTag"]
+	if l.AIDeployment.Spec.Engine.Options["imageTag"] != "" {
+		imageTag = l.AIDeployment.Spec.Engine.Options["imageTag"]
+	}
+
+	imageRepository := "quay.io/go-skynet/local-ai"
+	if l.AIDeployment.Spec.Engine.Options["imageRepository"] != "" {
+		imageRepository = l.AIDeployment.Spec.Engine.Options["imageRepository"]
+	}
+
+	deployment := appsv1.Deployment{}
+	if l.AIDeployment.Spec.Deployment.PodTemplate != nil {
+		deployment.Spec.Template = *l.AIDeployment.Spec.Deployment.PodTemplate
+	} else {
+		deployment.Spec.Template = v1.PodTemplateSpec{}
 	}
 	serviceAccount := false
 
-	v := l.Env
+	v := l.AIDeployment.Spec.Env
 
 	v = append(v, v1.EnvVar{Name: "MODELS_PATH", Value: "/models"})
-
+	image := fmt.Sprintf("%s:%s", imageRepository, imageTag)
 	expose := v1.Container{
 		ImagePullPolicy: v1.PullAlways,
-		Name:            l.Name,
-		Image:           fmt.Sprintf("quay.io/go-skynet/local-ai:%s", imageTag),
+		Name:            l.AIDeployment.Name,
+		Image:           image,
 		Env:             v,
 		VolumeMounts: []v1.VolumeMount{
 			{
@@ -60,26 +70,23 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
-	pod := v1.PodSpec{
-		Containers:                   []v1.Container{expose},
-		AutomountServiceAccountToken: &serviceAccount,
-	}
-
-	pod.Volumes = append(pod.Volumes, v1.Volume{
+	deployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, expose)
+	deployment.Spec.Template.Spec.AutomountServiceAccountToken = &serviceAccount
+	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, v1.Volume{
 		Name: "models",
 		VolumeSource: v1.VolumeSource{
 			EmptyDir: &v1.EmptyDirVolumeSource{},
 		},
 	})
 
-	// mount a configmap
+	// TODO: mount a configmap
 
-	for _, m := range l.Models {
+	for _, m := range l.AIDeployment.Spec.Models {
 		if m.Custom != nil {
-			pod.InitContainers = append(pod.InitContainers, v1.Container{
+			deployment.Spec.Template.Spec.InitContainers = append(deployment.Spec.Template.Spec.InitContainers, v1.Container{
 				ImagePullPolicy: v1.PullAlways,
 				Name:            fmt.Sprintf("init-%s", m.Custom.Name),
-				Image:           fmt.Sprintf("quay.io/go-skynet/local-ai:%s", imageTag),
+				Image:           image,
 				Command:         []string{"sh", "-c"},
 				Args:            []string{"wget -O /models/$MODEL_NAME $MODEL_PATH"},
 				Env: []v1.EnvVar{
@@ -101,10 +108,10 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			key := strings.ToLower(m.ModelName)
 			url, ok := models[key]
 			if ok {
-				pod.InitContainers = append(pod.InitContainers, v1.Container{
+				deployment.Spec.Template.Spec.InitContainers = append(deployment.Spec.Template.Spec.InitContainers, v1.Container{
 					ImagePullPolicy: v1.PullAlways,
 					Name:            fmt.Sprintf("init-%s", key),
-					Image:           fmt.Sprintf("quay.io/go-skynet/local-ai:%s", imageTag),
+					Image:           image,
 					Command:         []string{"sh", "-c"},
 					Args:            []string{"wget -O /models/$MODEL_NAME $MODEL_PATH"},
 					Env: []v1.EnvVar{
@@ -126,20 +133,33 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		}
 	}
 
-	deploymentLabels := resources.GenDefaultLabels(l.Name)
+	deploymentLabels := resources.GenDefaultLabels(l.AIDeployment.Name)
+
+	if deployment.Spec.Template.Labels == nil {
+		deployment.Spec.Template.Labels = map[string]string{}
+	}
+
+	if deployment.Spec.Template.Annotations == nil {
+		deployment.Spec.Template.Annotations = map[string]string{}
+	}
+
+	for k, v := range deploymentLabels {
+		deployment.Spec.Template.Labels[k] = v
+	}
+
+	for k, v := range l.AIDeployment.Spec.Deployment.Labels {
+		deployment.Spec.Template.Labels[k] = v
+	}
+
+	for k, v := range l.AIDeployment.Spec.Deployment.Annotations {
+		deployment.Spec.Template.Annotations[k] = v
+	}
+
 	replicas := int32(1)
 
-	return &appsv1.Deployment{
-		ObjectMeta: objMeta,
-		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{MatchLabels: deploymentLabels},
-			Replicas: &replicas,
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: deploymentLabels,
-				},
-				Spec: pod,
-			},
-		},
-	}, nil
+	deployment.ObjectMeta = objMeta
+	deployment.Spec.Selector = &metav1.LabelSelector{MatchLabels: deploymentLabels}
+	deployment.Spec.Replicas = &replicas
+
+	return &deployment, nil
 }
