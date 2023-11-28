@@ -46,10 +46,8 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	}
 
 	deployment := appsv1.Deployment{}
-	if l.AIDeployment.Spec.Deployment.PodTemplate != nil {
-		deployment.Spec.Template = *l.AIDeployment.Spec.Deployment.PodTemplate
-	} else {
-		deployment.Spec.Template = v1.PodTemplateSpec{}
+	if l.AIDeployment.Spec.Deployment.DeploymentSpec != nil {
+		deployment.Spec = *l.AIDeployment.Spec.Deployment.DeploymentSpec
 	}
 	serviceAccount := false
 
