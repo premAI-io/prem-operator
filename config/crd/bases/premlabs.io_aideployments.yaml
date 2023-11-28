@@ -8302,6 +8302,8 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  tls:
+                    type: boolean
                 type: object
               models:
                 items:
@@ -8329,7 +8331,7 @@ spec:
                       type: object
                   type: object
                 type: array
-              services:
+              service:
                 properties:
                   annotations:
                     additionalProperties:

@@ -10,7 +10,7 @@ import (
 
 // DesiredIngress generates the desired ingress
 // XXX: Probably doesn't do the correct thing for now
-func DesiredIngress(owner metav1.Object, name, namespace string, hostname []string, svcName, clusterIssuer string, port int, labels, annotations map[string]string) *networkv1.Ingress {
+func DesiredIngress(owner metav1.Object, name, namespace string, hostname []string, svcName string, port int, labels, annotations map[string]string, tls bool) *networkv1.Ingress {
 	t := networkv1.PathType("Prefix")
 	rules := []networkv1.IngressRule{}
 	for _, h := range hostname {
@@ -43,14 +43,12 @@ func DesiredIngress(owner metav1.Object, name, namespace string, hostname []stri
 		annotations = map[string]string{}
 	}
 
-	if clusterIssuer != "" {
+	if tls {
 		tlsEntry := []networkv1.IngressTLS{
-			networkv1.IngressTLS{
+			{
 				Hosts:      hostname,
 				SecretName: fmt.Sprintf("%s-tls", svcName),
 			}}
-
-		annotations["cert-manager.io/cluster-issuer"] = clusterIssuer
 		spec.TLS = tlsEntry
 	}
 

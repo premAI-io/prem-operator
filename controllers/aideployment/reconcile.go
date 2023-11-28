@@ -58,13 +58,18 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		}
 	}
 
+	annotations := resources.GenDefaultAnnotation(sd.Name)
+	for k, v := range sd.Spec.Service.Annotations {
+		annotations[k] = v
+	}
+
 	svc := resources.DesiredService(
 		&sd.ObjectMeta,
 		deployment.Name,
 		deployment.Namespace,
 		deployment.Spec.Template.Labels,
-		map[string]string{},
-		resources.GenDefaultAnnotation(sd.Name), mle.Port())
+		sd.Spec.Service.Labels,
+		annotations, mle.Port())
 
 	svcK := &v1.Service{}
 	// try to find if a svc already exists
@@ -97,15 +102,26 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		domains = append(domains, e.Domain)
 	}
 
+	tls := false
+	if sd.Spec.Ingress.TLS != nil {
+		tls = *sd.Spec.Ingress.TLS
+	}
+
+	annotations = resources.GenDefaultAnnotation(sd.Name)
+	for k, v := range sd.Spec.Ingress.Annotations {
+		annotations[k] = v
+	}
 	ingress := resources.DesiredIngress(
 		&sd.ObjectMeta,
 		deployment.Name,
 		deployment.Namespace,
 		domains,
 		deployment.Name,
-		"",
 		int(mle.Port()),
-		map[string]string{}, resources.GenDefaultAnnotation(sd.Name))
+		sd.Spec.Ingress.Labels,
+		annotations,
+		tls,
+	)
 
 	ingressK := &networkv1.Ingress{}
 	// try to find if an ingress already exists

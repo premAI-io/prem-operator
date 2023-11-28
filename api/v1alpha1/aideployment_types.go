@@ -35,7 +35,7 @@ type AIDeploymentSpec struct {
 	Env []v1.EnvVar `json:"env,omitempty"`
 
 	// +optional
-	Services Services `json:"services,omitempty"`
+	Service Service `json:"service,omitempty"`
 
 	// +optional
 	Deployment Deployment `json:"deployment,omitempty"`
@@ -46,7 +46,7 @@ type AIDeploymentSpec struct {
 	Models []AIModel `json:"models,omitempty"`
 }
 
-type Services struct {
+type Service struct {
 	// +optional
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
@@ -62,6 +62,8 @@ type Deployment struct {
 type Ingress struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+
+	TLS *bool `json:"tls,omitempty"`
 }
 
 type Endpoint struct {
