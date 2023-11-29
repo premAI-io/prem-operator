@@ -22,7 +22,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -220,9 +219,9 @@ func (in *Deployment) DeepCopyInto(out *Deployment) {
 			(*out)[key] = val
 		}
 	}
-	if in.DeploymentSpec != nil {
-		in, out := &in.DeploymentSpec, &out.DeploymentSpec
-		*out = new(appsv1.DeploymentSpec)
+	if in.PodTemplate != nil {
+		in, out := &in.PodTemplate, &out.PodTemplate
+		*out = new(v1.PodTemplateSpec)
 		(*in).DeepCopyInto(*out)
 	}
 }

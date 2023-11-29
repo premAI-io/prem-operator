@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,8 +54,11 @@ type Service struct {
 type Deployment struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+
 	// +optional
-	DeploymentSpec *appsv1.DeploymentSpec `json:"spec,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
+	// +optional
+	PodTemplate *v1.PodTemplateSpec `json:"template,omitempty"`
 }
 
 type Ingress struct {
@@ -68,6 +70,8 @@ type Ingress struct {
 
 type Endpoint struct {
 	Domain string `json:"domain"`
+	// +optional
+	Port int32 `json:"port,omitempty"`
 }
 
 type AIEngine struct {
