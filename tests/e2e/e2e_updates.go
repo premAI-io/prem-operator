@@ -33,7 +33,6 @@ var _ = Describe("update test", func() {
 	var artifactName string
 	var sds, pods dynamic.ResourceInterface
 	var scheme *runtime.Scheme
-	//var artifactLabelSelector labels.Selector
 
 	BeforeEach(func() {
 		k8s := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())

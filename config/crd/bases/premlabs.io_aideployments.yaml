@@ -45,6 +45,9 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  replicas:
+                    format: int32
+                    type: integer
                   template:
                     description: PodTemplateSpec describes the data a pod should have
                       when created from a template

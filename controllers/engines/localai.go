@@ -157,11 +157,8 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		deployment.Spec.Template.Annotations[k] = v
 	}
 
-	replicas := int32(1)
-
 	deployment.ObjectMeta = objMeta
 	deployment.Spec.Selector = &metav1.LabelSelector{MatchLabels: deploymentLabels}
-	deployment.Spec.Replicas = &replicas
 
 	return &deployment, nil
 }
