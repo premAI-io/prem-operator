@@ -13,7 +13,11 @@ var (
 
 // XXX: Probably doesn't do the correct thing for now
 func DesiredService(owner metav1.Object, name, namespace string, selector, labels, annotations map[string]string, port int32) *corev1.Service {
-	ports := []corev1.ServicePort{corev1.ServicePort{Port: port, TargetPort: intstr.FromInt(int(port))}}
+	ports := []corev1.ServicePort{
+		{
+			Port: port, TargetPort: intstr.FromInt(int(port)),
+		},
+	}
 
 	if labels == nil {
 		labels = map[string]string{}

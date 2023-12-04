@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vllm
+---
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment
+metadata:
+  name: vllm-engine
+  namespace: vllm
+spec:
+  endpoint:
+    - domain: "vllm.127.0.0.1.nip.io"
+  engine:
+    name: "vllm"
+  models:
+    - custom:
+        name: "vllm-engine"
+        url: "mistralai/Mistral-7B-v0.1"
+        format: "gguf"

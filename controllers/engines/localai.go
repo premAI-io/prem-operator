@@ -2,6 +2,7 @@ package engines
 
 import (
 	"fmt"
+	"github.com/premAI-io/saas-controller/controllers/aideployment"
 	"strings"
 
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
@@ -15,14 +16,11 @@ type LocalAI struct {
 	AIDeployment *a1.AIDeployment
 }
 
-func NewLocalAI(ai *a1.AIDeployment) *LocalAI {
+func NewLocalAI(ai *a1.AIDeployment) aideployment.MLEngine {
 	return &LocalAI{AIDeployment: ai}
 
 }
 func (l *LocalAI) Port() int32 {
-	// if l.ServicePort != 0 {
-	// 	return l.ServicePort
-	// }
 	return 8080
 }
 

@@ -66,18 +66,26 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, err
 	}
 
+	var (
+		mlEngine aideployment.MLEngine
+		err      error
+	)
 	switch strings.ToLower(ent.Spec.Engine.Name) {
 	case engines.LocalAIEngine:
-		// Create a deployment targeting a service
-		e := engines.NewLocalAI(&ent)
-		requeue, err := aideployment.Reconcile(ent, ctx, r.Client, e)
-		if requeue {
-			return ctrl.Result{Requeue: true}, err
+		mlEngine = engines.NewLocalAI(&ent)
+	case engines.VllmAiEngine:
+		mlEngine, err = engines.NewVllmAi(&ent)
+		if err != nil {
+			return ctrl.Result{}, err
 		}
-
-		return ctrl.Result{}, err
 	}
-	return ctrl.Result{}, nil
+
+	requeue, err := aideployment.Reconcile(ent, ctx, r.Client, mlEngine)
+	if requeue {
+		return ctrl.Result{Requeue: true}, err
+	}
+
+	return ctrl.Result{}, err
 }
 
 // SetupWithManager sets up the controller with the Manager.

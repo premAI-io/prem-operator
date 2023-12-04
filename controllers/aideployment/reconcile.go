@@ -2,6 +2,7 @@ package aideployment
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 
 	networkv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -144,6 +145,10 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 			return false, err
 		}
 	}
+
+	log.Info(
+		"Reconcile completed:", sd.Name, " in namespace: ", sd.Namespace,
+	)
 
 	return false, nil
 }

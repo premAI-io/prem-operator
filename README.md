@@ -98,6 +98,9 @@ make manifests
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
+### Tutorial
+1. [Run Mistral on K3s with vLLM from saas-controller source code](./docs/vllm.MD)
+
 ## License
 
 Copyright 2023.
