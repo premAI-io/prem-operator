@@ -1,5 +1,6 @@
-#!/bin/bash
+#!/bin/bash -eu
 
+CREATE_ONLY=${CREATE_ONLY:-false}
 KUBE_VERSION=${KUBE_VERSION:-v1.22.7}
 CLUSTER_NAME="${CLUSTER_NAME:-saas-controller-e2e}"
 
