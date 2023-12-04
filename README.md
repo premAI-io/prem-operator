@@ -17,6 +17,9 @@ You’ll need a Kubernetes cluster to run against. You can use [KIND](https://si
 ## Requirements
 
 - An ingress controller (e.g. traefik)
+- Helm (optional)
+
+**Note**: Helm is used to install Treafik when automatically creating a cluster with KIND (i.e. with `make kind-setup`).
 
 ### Running on the cluster
 1. Install Instances of Custom Resources:
