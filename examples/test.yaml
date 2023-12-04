@@ -9,7 +9,7 @@ spec:
   engine:
     name: "localai" 
   endpoint:
-    -  domain: "foo.127.0.0.1.nip.io"
+    - domain: "foo.127.0.0.1.nip.io"
       port: 8080 
   models:
     - custom:
