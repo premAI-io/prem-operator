@@ -2,14 +2,16 @@ package engines
 
 import (
 	"fmt"
-	"github.com/premAI-io/saas-controller/controllers/aideployment"
 	"strings"
+
+	"github.com/premAI-io/saas-controller/controllers/aideployment"
 
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type LocalAI struct {
@@ -25,6 +27,28 @@ func (l *LocalAI) Port() int32 {
 }
 
 const LocalAIEngine = "localai"
+
+func mergeProbe(src *a1.Probe, dst *v1.Probe) {
+	if src == nil {
+		return
+	}
+
+	if src.InitialDelaySeconds != nil {
+		dst.InitialDelaySeconds = *src.InitialDelaySeconds
+	}
+	if src.PeriodSeconds != 0 {
+		dst.PeriodSeconds = src.PeriodSeconds
+	}
+	if src.TimeoutSeconds != 0 {
+		dst.TimeoutSeconds = src.TimeoutSeconds
+	}
+	if src.SuccessThreshold != 0 {
+		dst.SuccessThreshold = src.SuccessThreshold
+	}
+	if src.FailureThreshold != 0 {
+		dst.FailureThreshold = src.FailureThreshold
+	}
+}
 
 func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	objMeta := metav1.ObjectMeta{
@@ -57,6 +81,13 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	v = append(v, v1.EnvVar{Name: "MODELS_PATH", Value: "/models"})
 	image := fmt.Sprintf("%s:%s", imageRepository, imageTag)
+
+	healthProbeHandler := v1.ProbeHandler{
+		HTTPGet: &v1.HTTPGetAction{
+			Path: "/healthz",
+			Port: intstr.FromInt(int(l.Port())),
+		},
+	}
 	expose := v1.Container{
 		ImagePullPolicy: v1.PullAlways,
 		Name:            l.AIDeployment.Name,
@@ -68,7 +99,32 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 				MountPath: "/models",
 			},
 		},
+		StartupProbe: &v1.Probe{
+			InitialDelaySeconds: 60,
+			PeriodSeconds:       30,
+			FailureThreshold:    120,
+			ProbeHandler: v1.ProbeHandler{
+				HTTPGet: &v1.HTTPGetAction{
+					Path: "/readyz",
+					Port: intstr.FromInt(int(l.Port())),
+				},
+			},
+		},
+		ReadinessProbe: &v1.Probe{
+			FailureThreshold: 3,
+			ProbeHandler:     healthProbeHandler,
+		},
+		LivenessProbe: &v1.Probe{
+			PeriodSeconds:    30,
+			TimeoutSeconds:   15,
+			FailureThreshold: 10,
+			ProbeHandler:     healthProbeHandler,
+		},
 	}
+
+	mergeProbe(l.AIDeployment.Spec.Deployment.StartupProbe, expose.StartupProbe)
+	mergeProbe(l.AIDeployment.Spec.Deployment.ReadinessProbe, expose.ReadinessProbe)
+	mergeProbe(l.AIDeployment.Spec.Deployment.LivenessProbe, expose.LivenessProbe)
 
 	deployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, expose)
 	deployment.Spec.Template.Spec.AutomountServiceAccountToken = &serviceAccount

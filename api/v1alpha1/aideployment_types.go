@@ -51,6 +51,21 @@ type Service struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
+type Probe struct {
+	// +optional
+	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
+	// +optional
+	TimeoutSeconds int32 `json:"timeoutSeconds,omitempty"`
+	// +optional
+	PeriodSeconds int32 `json:"periodSeconds,omitempty"`
+	// +optional
+	SuccessThreshold int32 `json:"successThreshold,omitempty"`
+	// +optional
+	FailureThreshold int32 `json:"failureThreshold,omitempty"`
+	// +optional
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
+}
+
 type Deployment struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
@@ -59,6 +74,13 @@ type Deployment struct {
 	Replicas *int32 `json:"replicas,omitempty"`
 	// +optional
 	PodTemplate *v1.PodTemplateSpec `json:"template,omitempty"`
+
+	// +optional
+	StartupProbe *Probe `json:"startupProbe,omitempty"`
+	// +optional
+	ReadinessProbe *Probe `json:"readinessProbe,omitempty"`
+	// +optional
+	LivenessProbe *Probe `json:"livenessProbe,omitempty"`
 }
 
 type Ingress struct {

@@ -15,7 +15,7 @@ spec:
     - custom:
         format: "gguf" 
         name: "gpt-4" 
-        url: "https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGUF/resolve/main/WizardLM-7B-uncensored.Q2_K.gguf" 
+        url: "https://huggingface.co/afrideva/llama2_xs_460M_experimental-GGUF/resolve/main/llama2_xs_460m_experimental.q8_0.gguf?download=true"
         checksum: "sha1:"
   service:
     annotations:
@@ -26,3 +26,6 @@ spec:
   deployment:
     annotations:
     labels:
+  env:
+    - name: "DEBUG"
+      value: "true"
