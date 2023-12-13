@@ -76,6 +76,6 @@ jobs:
           echo "Packaging version $version"
           #version="0.0.1+main-${GITHUB_SHA:0:7}-$(date +%s)"
           app_version="0.0.1"
-          echo "${{ secrets.DOCKERHUB_USERNAME }}" | helm registry login -u '${{ secrets.DOCKERHUB_PASSWORD }}' --password-stdin
+          echo "${{ secrets.DOCKERHUB_USERNAME }}" | helm registry login registry-1.docker.io -u '${{ secrets.DOCKERHUB_PASSWORD }}' --password-stdin
           helm package --version "${version}" --app-version $app_version charts/saas-controller
           helm push saas-controller-${version}.tgz oci://${{ env.IMAGE_NAME }}
