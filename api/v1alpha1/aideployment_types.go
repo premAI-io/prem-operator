@@ -70,6 +70,14 @@ type Deployment struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
+	// The deployment must request the minimum amount of memory required by the models
+	Resources v1.ResourceRequirements `json:"resources"`
+
+	// If using a GPU the amount of per GPU memory must be specified
+	// e.g. nvida.com/gpu.memory: "81920" (80GB A100)
+	// This is used to calculate the number of required GPUs
+	NodeSelector map[string]string `json:"nodeSelectors,omitempty"`
+
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
 	// +optional
@@ -125,6 +133,7 @@ type AIModelCustom struct {
 	Format AIModelFormat `json:"format"`
 	Name   string        `json:"name"`
 	Url    string        `json:"url"`
+
 	// +optional
 	Checksum string `json:"checksum,omitempty"`
 }

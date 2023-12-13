@@ -18,3 +18,8 @@ spec:
         name: "vllm-engine"
         url: "mistralai/Mistral-7B-v0.1"
         format: "gguf"
+  deployment:
+    resources:
+      memory: "16Gi"
+    nodeSelectors:
+      nvidia.com/gpu.memory: 81920

@@ -16,6 +16,7 @@ import (
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	networkv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -145,7 +146,13 @@ var _ = Describe("localai test", func() {
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
-					},
+					}},
+					Deployment: api.Deployment{
+						Resources: corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{
+								"memory": resource.MustParse("70Mi"),
+							},
+						},
 					},
 					Models: []api.AIModel{
 						{
@@ -182,6 +189,15 @@ var _ = Describe("localai test", func() {
 				g.Expect(c.LivenessProbe.PeriodSeconds).To(Equal(int32(30)))
 				g.Expect(c.LivenessProbe.TimeoutSeconds).To(Equal(int32(15)))
 				g.Expect(c.LivenessProbe.FailureThreshold).To(Equal(int32(10)))
+
+				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("70Mi")))
+				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
+				mems := c.Resources.Limits["memory"]
+				g.Expect(mems.Cmp(c.Resources.Requests["memory"])).To(BeNumerically(">", 0))
+				cpus := c.Resources.Limits["cpu"]
+				g.Expect(cpus.Cmp(c.Resources.Requests["cpu"])).To(BeNumerically(">=", 0))
+
+				g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.Quantity{}))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
@@ -291,6 +307,11 @@ var _ = Describe("localai test", func() {
 						LivenessProbe: &api.Probe{
 							PeriodSeconds: 21,
 						},
+						Resources: corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{
+								"memory": resource.MustParse("70Mi"),
+							},
+						},
 					},
 				},
 			}
@@ -320,6 +341,67 @@ var _ = Describe("localai test", func() {
 				g.Expect(c.LivenessProbe.PeriodSeconds).To(Equal(int32(21)))
 				g.Expect(c.LivenessProbe.TimeoutSeconds).To(Equal(int32(15)))
 				g.Expect(c.LivenessProbe.FailureThreshold).To(Equal(int32(10)))
+
+				return true
+			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+		})
+	})
+
+	When("We specify a GPU", func() {
+		BeforeEach(func() {
+			artifact = &api.AIDeployment{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "AIDeployment",
+					APIVersion: api.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "localai-",
+				},
+				Spec: api.AIDeploymentSpec{
+					Engine: api.AIEngine{
+						Name: "localai",
+					},
+					Endpoint: []api.Endpoint{{
+						Domain: "foo.127.0.0.1.nip.io",
+					},
+					},
+					Models: []api.AIModel{
+						{
+							Custom: &api.AIModelCustom{
+								Format: "ggml",
+								Name:   "gpt-4",
+								Url:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
+							},
+						},
+					},
+					Deployment: api.Deployment{
+						NodeSelector: map[string]string{
+							"nvidia.com/gpu-memory": "81920",
+						},
+						Resources: corev1.ResourceRequirements{
+							Requests: map[corev1.ResourceName]resource.Quantity{
+								"memory": resource.MustParse("200Gi"),
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("Creates a deployment with the correct GPU count", func() {
+			By("creating the workload with the associated label")
+			Eventually(func(g Gomega) bool {
+				deploymentPod := &corev1.Pod{}
+				if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+					return false
+				}
+
+				c := deploymentPod.Spec.Containers[0]
+				g.Expect(c.Name).To(HavePrefix("localai"))
+				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
+				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
+				g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
+				g.Expect(c.Resources.Limits["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())

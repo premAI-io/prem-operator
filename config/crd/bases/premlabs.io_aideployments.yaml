@@ -66,6 +66,13 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: 'If using a GPU the amount of per GPU memory must
+                      be specified e.g. nvida.com/gpu.memory: "81920" (80GB A100)
+                      This is used to calculate the number of required GPUs'
+                    type: object
                   readinessProbe:
                     properties:
                       failureThreshold:
@@ -90,6 +97,33 @@ spec:
                   replicas:
                     format: int32
                     type: integer
+                  resources:
+                    description: The deployment must request the minimum amount of
+                      memory required by the models
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Limits describes the maximum amount of compute
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Requests describes the minimum amount of compute
+                          resources required. If Requests is omitted for a container,
+                          it defaults to Limits if that is explicitly specified, otherwise
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                    type: object
                   startupProbe:
                     properties:
                       failureThreshold:
@@ -7643,6 +7677,8 @@ spec:
                         - containers
                         type: object
                     type: object
+                required:
+                - resources
                 type: object
               endpoint:
                 items:

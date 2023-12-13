@@ -28,28 +28,6 @@ func (l *LocalAI) Port() int32 {
 
 const LocalAIEngine = "localai"
 
-func mergeProbe(src *a1.Probe, dst *v1.Probe) {
-	if src == nil {
-		return
-	}
-
-	if src.InitialDelaySeconds != nil {
-		dst.InitialDelaySeconds = *src.InitialDelaySeconds
-	}
-	if src.PeriodSeconds != 0 {
-		dst.PeriodSeconds = src.PeriodSeconds
-	}
-	if src.TimeoutSeconds != 0 {
-		dst.TimeoutSeconds = src.TimeoutSeconds
-	}
-	if src.SuccessThreshold != 0 {
-		dst.SuccessThreshold = src.SuccessThreshold
-	}
-	if src.FailureThreshold != 0 {
-		dst.FailureThreshold = src.FailureThreshold
-	}
-}
-
 func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	objMeta := metav1.ObjectMeta{
 		Name:            l.AIDeployment.Name,
@@ -74,6 +52,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		deployment.Spec.Template = v1.PodTemplateSpec{}
 	}
 	deployment.Spec.Replicas = l.AIDeployment.Spec.Deployment.Replicas
+	pod := &deployment.Spec.Template.Spec
 
 	serviceAccount := false
 
@@ -122,13 +101,15 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
+	addSchedulingProperties(&deployment, &expose, &l.AIDeployment.Spec)
+
 	mergeProbe(l.AIDeployment.Spec.Deployment.StartupProbe, expose.StartupProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.ReadinessProbe, expose.ReadinessProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.LivenessProbe, expose.LivenessProbe)
 
-	deployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, expose)
-	deployment.Spec.Template.Spec.AutomountServiceAccountToken = &serviceAccount
-	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, v1.Volume{
+	pod.Containers = append(pod.Containers, expose)
+	pod.AutomountServiceAccountToken = &serviceAccount
+	pod.Volumes = append(pod.Volumes, v1.Volume{
 		Name: "models",
 		VolumeSource: v1.VolumeSource{
 			EmptyDir: &v1.EmptyDirVolumeSource{},
@@ -139,7 +120,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	for _, m := range l.AIDeployment.Spec.Models {
 		if m.Custom != nil {
-			deployment.Spec.Template.Spec.InitContainers = append(deployment.Spec.Template.Spec.InitContainers, v1.Container{
+			pod.InitContainers = append(pod.InitContainers, v1.Container{
 				ImagePullPolicy: v1.PullAlways,
 				Name:            fmt.Sprintf("init-%s", m.Custom.Name),
 				Image:           image,
@@ -164,7 +145,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			key := strings.ToLower(m.ModelName)
 			url, ok := models[key]
 			if ok {
-				deployment.Spec.Template.Spec.InitContainers = append(deployment.Spec.Template.Spec.InitContainers, v1.Container{
+				pod.InitContainers = append(pod.InitContainers, v1.Container{
 					ImagePullPolicy: v1.PullAlways,
 					Name:            fmt.Sprintf("init-%s", key),
 					Image:           image,
@@ -191,25 +172,16 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	deploymentLabels := resources.GenDefaultLabels(l.AIDeployment.Name)
 
-	if deployment.Spec.Template.Labels == nil {
-		deployment.Spec.Template.Labels = map[string]string{}
-	}
+	deployment.Spec.Template.Labels = mergeMaps(
+		deploymentLabels,
+		deployment.Spec.Template.Labels,
+		l.AIDeployment.Spec.Deployment.Labels,
+	)
 
-	if deployment.Spec.Template.Annotations == nil {
-		deployment.Spec.Template.Annotations = map[string]string{}
-	}
-
-	for k, v := range deploymentLabels {
-		deployment.Spec.Template.Labels[k] = v
-	}
-
-	for k, v := range l.AIDeployment.Spec.Deployment.Labels {
-		deployment.Spec.Template.Labels[k] = v
-	}
-
-	for k, v := range l.AIDeployment.Spec.Deployment.Annotations {
-		deployment.Spec.Template.Annotations[k] = v
-	}
+	deployment.Spec.Template.Annotations = mergeMaps(
+		deployment.Spec.Template.Annotations,
+		l.AIDeployment.Spec.Deployment.Annotations,
+	)
 
 	deployment.ObjectMeta = objMeta
 	deployment.Spec.Selector = &metav1.LabelSelector{MatchLabels: deploymentLabels}

@@ -26,6 +26,10 @@ spec:
   deployment:
     annotations:
     labels:
+    resources:
+      requests:
+        cpu: 8
+        memory: "500Mi"
   env:
     - name: "DEBUG"
       value: "true"

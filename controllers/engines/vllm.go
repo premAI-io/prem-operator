@@ -8,7 +8,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -43,7 +42,7 @@ type vllmAi struct {
 	containerName string
 
 	// used to customize the deployment
-	deploymentOptions a1.Deployment
+	deploymentOptions *a1.AIDeployment
 }
 
 func NewVllmAi(ai *a1.AIDeployment) (aideployment.MLEngine, error) {
@@ -74,7 +73,7 @@ func NewVllmAi(ai *a1.AIDeployment) (aideployment.MLEngine, error) {
 		namespace:         ai.Namespace,
 		engineEnvVars:     ai.Spec.Env,
 		containerName:     model.Custom.Name,
-		deploymentOptions: ai.Spec.Deployment,
+		deploymentOptions: ai,
 	}, nil
 }
 
@@ -98,21 +97,12 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		Args: []string{
 			"--model", v.llmName,
 		},
-		Resources: v1.ResourceRequirements{
-			Limits: v1.ResourceList{
-				"nvidia.com/gpu": resource.MustParse("1"),
-			},
-			Requests: v1.ResourceList{
-				"nvidia.com/gpu": resource.MustParse("1"),
-			},
-		},
 	}
 
 	serviceAccount := false
-	runtimeClassName := "nvidia"
 	replicas := int32(1)
-	if v.deploymentOptions.Replicas != nil {
-		replicas = *v.deploymentOptions.Replicas
+	if v.deploymentOptions.Spec.Deployment.Replicas != nil {
+		replicas = *v.deploymentOptions.Spec.Deployment.Replicas
 	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -129,17 +119,15 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: mergeMaps(
 						resources.GenDefaultLabels(v.resourceName),
-						v.deploymentOptions.Labels,
+						v.deploymentOptions.Spec.Deployment.Labels,
 					),
 					Annotations: mergeMaps(
-						map[string]string{},
-						v.deploymentOptions.Annotations,
+						v.deploymentOptions.Spec.Deployment.Annotations,
 					),
 				},
 				Spec: v1.PodSpec{
 					Containers:                   []v1.Container{container},
 					AutomountServiceAccountToken: &serviceAccount,
-					RuntimeClassName:             &runtimeClassName,
 					Volumes: []v1.Volume{
 						{
 							Name: "models",
@@ -153,16 +141,6 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
+	addSchedulingProperties(deployment, &container, &v.deploymentOptions.Spec)
 	return deployment, nil
-}
-
-func mergeMaps(a, b map[string]string) map[string]string {
-	result := make(map[string]string)
-	for k, v := range a {
-		result[k] = v
-	}
-	for k, v := range b {
-		result[k] = v
-	}
-	return result
 }
