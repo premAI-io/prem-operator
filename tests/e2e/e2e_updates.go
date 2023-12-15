@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func randomString(length int) string {
@@ -53,6 +54,14 @@ var _ = Describe("update test", func() {
 			},
 			Spec: api.AIDeploymentSpec{
 				Engine: api.AIEngine{Name: "localai"},
+				Deployment: api.Deployment{
+					Resources: corev1.ResourceRequirements{
+						Requests: map[corev1.ResourceName]resource.Quantity{
+							"memory": resource.MustParse("70Mi"),
+						},
+					},
+				},
+
 			},
 		}
 

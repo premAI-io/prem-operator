@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 var _ = Describe("replicas test", func() {
@@ -42,6 +43,11 @@ var _ = Describe("replicas test", func() {
 			Spec: api.AIDeploymentSpec{
 				Deployment: api.Deployment{
 					Replicas: &replicas,
+					Resources: corev1.ResourceRequirements{
+						Requests: map[corev1.ResourceName]resource.Quantity{
+							"memory": resource.MustParse("70Mi"),
+						},
+					},
 				},
 				Engine: api.AIEngine{
 					Name: "localai",

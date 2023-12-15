@@ -26,52 +26,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func getObjectWithLabel(resource dynamic.ResourceInterface, obj metav1.Object, labelName string, labelValue string) bool {
-	list, err := resource.List(context.TODO(), metav1.ListOptions{})
-	Expect(err).ToNot(HaveOccurred())
-	found := false
-
-	for _, item := range list.Items {
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, obj)
-
-		Expect(err).ToNot(HaveOccurred())
-
-		if v, ok := obj.GetLabels()[labelName]; ok && v == labelValue {
-			found = ok
-			break
-		}
-	}
-
-	if !found {
-		obj = nil
-	}
-
-	return found
-}
-
-func getObjectWithAnnotation(resource dynamic.ResourceInterface, obj metav1.Object, labelName string, labelValue string) bool {
-	list, err := resource.List(context.TODO(), metav1.ListOptions{})
-	Expect(err).ToNot(HaveOccurred())
-	found := false
-
-	for _, item := range list.Items {
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, obj)
-
-		Expect(err).ToNot(HaveOccurred())
-
-		if v, ok := obj.GetAnnotations()[labelName]; ok && v == labelValue {
-			found = ok
-			break
-		}
-	}
-
-	if !found {
-		obj = nil
-	}
-
-	return found
-}
-
 var _ = Describe("localai test", func() {
 	var artifactName string
 	var oper, sds, pods, svc, ingr dynamic.ResourceInterface

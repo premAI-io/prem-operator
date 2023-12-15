@@ -169,7 +169,9 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
-	addSchedulingProperties(deployment, &container, &v.deploymentOptions.Spec)
+	if err := addSchedulingProperties(deployment, &container, &v.deploymentOptions.Spec); err != nil {
+		return deployment, err
+	}
 	deployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, container)
 	return deployment, nil
 }

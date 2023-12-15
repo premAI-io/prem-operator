@@ -101,7 +101,9 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
-	addSchedulingProperties(&deployment, &expose, &l.AIDeployment.Spec)
+	if err := addSchedulingProperties(&deployment, &expose, &l.AIDeployment.Spec); err != nil {
+		return &deployment, err
+	}
 
 	mergeProbe(l.AIDeployment.Spec.Deployment.StartupProbe, expose.StartupProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.ReadinessProbe, expose.ReadinessProbe)
