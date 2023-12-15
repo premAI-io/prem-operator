@@ -9,6 +9,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -83,6 +84,13 @@ func (v *vllmAi) Port() int32 {
 
 func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	log.Info("Creating deployment for vllm engine, model: ", v.llmName)
+	healthProbeHandler := v1.ProbeHandler{
+		HTTPGet: &v1.HTTPGetAction{
+			Path: "/health",
+			Port: intstr.FromInt(int(v.Port())),
+		},
+	}
+
 	container := v1.Container{
 		ImagePullPolicy: v1.PullAlways,
 		Name:            v.containerName,
@@ -97,7 +105,27 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		Args: []string{
 			"--model", v.llmName,
 		},
+		StartupProbe: &v1.Probe{
+			InitialDelaySeconds: 3,
+			PeriodSeconds:       1,
+			FailureThreshold:    120,
+			ProbeHandler:        healthProbeHandler,
+		},
+		ReadinessProbe: &v1.Probe{
+			FailureThreshold: 3,
+			ProbeHandler:     healthProbeHandler,
+		},
+		LivenessProbe: &v1.Probe{
+			PeriodSeconds:    30,
+			TimeoutSeconds:   15,
+			FailureThreshold: 10,
+			ProbeHandler:     healthProbeHandler,
+		},
 	}
+
+	mergeProbe(v.deploymentOptions.Spec.Deployment.StartupProbe, container.StartupProbe)
+	mergeProbe(v.deploymentOptions.Spec.Deployment.ReadinessProbe, container.ReadinessProbe)
+	mergeProbe(v.deploymentOptions.Spec.Deployment.LivenessProbe, container.LivenessProbe)
 
 	serviceAccount := false
 	replicas := int32(1)
@@ -126,7 +154,7 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 					),
 				},
 				Spec: v1.PodSpec{
-					Containers:                   []v1.Container{container},
+					Containers:                   []v1.Container{},
 					AutomountServiceAccountToken: &serviceAccount,
 					Volumes: []v1.Volume{
 						{
@@ -142,5 +170,6 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	}
 
 	addSchedulingProperties(deployment, &container, &v.deploymentOptions.Spec)
+	deployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, container)
 	return deployment, nil
 }
