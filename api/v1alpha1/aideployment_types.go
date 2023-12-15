@@ -125,7 +125,7 @@ type AIModelFormat string
 const (
 	AIModelFormatGguf       AIModelFormat = "gguf"
 	AIModelFormatCtranslate AIModelFormat = "ctranslate"
-	AIModelFormatPickle     AIModelFormat = "picke"
+	AIModelFormatPickle     AIModelFormat = "pickle"
 	AIModelFormatSafeTensor AIModelFormat = "safetensor"
 )
 
