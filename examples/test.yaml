@@ -30,6 +30,8 @@ spec:
       requests:
         cpu: 8
         memory: "500Mi"
+    nodeSelector:
+      nvidia.com/gpu.memory: "81920"
   env:
     - name: "DEBUG"
       value: "true"

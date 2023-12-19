@@ -76,7 +76,7 @@ type Deployment struct {
 	// If using a GPU the amount of per GPU memory must be specified
 	// e.g. nvida.com/gpu.memory: "81920" (80GB A100)
 	// This is used to calculate the number of required GPUs
-	NodeSelector map[string]string `json:"nodeSelectors,omitempty"`
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`

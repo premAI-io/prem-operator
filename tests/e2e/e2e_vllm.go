@@ -104,7 +104,7 @@ var _ = Describe("vllm test", func() {
 					}},
 					Deployment: api.Deployment{
 						NodeSelector: map[string]string{
-							"nvidia.com/gpu-memory": "81920",
+							"nvidia.com/gpu.memory": "81920",
 						},
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{
@@ -188,7 +188,7 @@ var _ = Describe("vllm test", func() {
 								PeriodSeconds: 21,
 							},
 							NodeSelector: map[string]string{
-								"nvidia.com/gpu-memory": "81920",
+								"nvidia.com/gpu.memory": "81920",
 							},
 							Resources: corev1.ResourceRequirements{
 								Requests: map[corev1.ResourceName]resource.Quantity{
@@ -251,7 +251,7 @@ var _ = Describe("vllm test", func() {
 						Models: custModel,
 						Deployment: api.Deployment{
 							NodeSelector: map[string]string{
-								"nvidia.com/gpu-memory": "81920",
+								"nvidia.com/gpu.memory": "81920",
 							},
 							Resources: corev1.ResourceRequirements{
 								Requests: map[corev1.ResourceName]resource.Quantity{

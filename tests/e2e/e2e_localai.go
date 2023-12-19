@@ -330,7 +330,7 @@ var _ = Describe("localai test", func() {
 					},
 					Deployment: api.Deployment{
 						NodeSelector: map[string]string{
-							"nvidia.com/gpu-memory": "81920",
+							"nvidia.com/gpu.memory": "81920",
 						},
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{

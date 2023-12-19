@@ -65,7 +65,7 @@ func neededGPUs(deploy a1.Deployment) (resource.Quantity, error) {
 	var memoryPerGPU *resource.Quantity
 	gpus := resource.MustParse("0")
 
-	if v, ok := deploy.NodeSelector["nvidia.com/gpu-memory"]; ok {
+	if v, ok := deploy.NodeSelector["nvidia.com/gpu.memory"]; ok {
 		q := resource.MustParse(v + "Mi")
 		memoryPerGPU = &q
 	}

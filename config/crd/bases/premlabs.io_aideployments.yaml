@@ -66,7 +66,7 @@ spec:
                         format: int32
                         type: integer
                     type: object
-                  nodeSelectors:
+                  nodeSelector:
                     additionalProperties:
                       type: string
                     description: 'If using a GPU the amount of per GPU memory must

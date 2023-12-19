@@ -21,5 +21,5 @@ spec:
   deployment:
     resources:
       memory: "16Gi"
-    nodeSelectors:
+    nodeSelector:
       nvidia.com/gpu.memory: 81920
