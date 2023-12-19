@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -24,7 +25,7 @@ import (
 
 var _ = Describe("vllm test", func() {
 	var artifactName string
-	var oper, sds, pods dynamic.ResourceInterface
+	var deps, oper, sds, pods dynamic.ResourceInterface
 	var scheme *runtime.Scheme
 	var artifact *api.AIDeployment
 	var startTime time.Time
@@ -47,6 +48,7 @@ var _ = Describe("vllm test", func() {
 		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "aideployments"}).Namespace("default")
 		pods = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("default")
 		oper = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
+		deps = k8s.Resource(schema.GroupVersionResource{Group: appsv1.GroupName, Version: appsv1.SchemeGroupVersion.Version, Resource: "deployments"}).Namespace("default")
 
 		uArtifact := unstructured.Unstructured{}
 		uArtifact.Object, _ = runtime.DefaultUnstructuredConverter.ToUnstructured(artifact)
@@ -103,9 +105,6 @@ var _ = Describe("vllm test", func() {
 						Domain: "foo.127.0.0.1.nip.io",
 					}},
 					Deployment: api.Deployment{
-						NodeSelector: map[string]string{
-							"nvidia.com/gpu.memory": "81920",
-						},
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{
 								"memory": resource.MustParse("3Gi"),
@@ -147,8 +146,6 @@ var _ = Describe("vllm test", func() {
 				cpus := c.Resources.Limits["cpu"]
 				g.Expect(cpus.Cmp(c.Resources.Requests["cpu"])).To(BeNumerically(">=", 0))
 
-				g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("1")))
-
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
 		})
@@ -186,9 +183,6 @@ var _ = Describe("vllm test", func() {
 							},
 							LivenessProbe: &api.Probe{
 								PeriodSeconds: 21,
-							},
-							NodeSelector: map[string]string{
-								"nvidia.com/gpu.memory": "81920",
 							},
 							Resources: corev1.ResourceRequirements{
 								Requests: map[corev1.ResourceName]resource.Quantity{
@@ -266,12 +260,15 @@ var _ = Describe("vllm test", func() {
 			It("Creates a deployment with the correct GPU count", func() {
 				By("creating the workload with the associated label")
 				Eventually(func(g Gomega) bool {
-					deploymentPod := &corev1.Pod{}
-					if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+					deployment := &appsv1.Deployment{}
+					if !getObjectWithName(deps, deployment, artifactName) {
 						return false
 					}
 
-					c := deploymentPod.Spec.Containers[0]
+					nvidia := "nvidia"
+					g.Expect(deployment.Spec.Template.Spec.RuntimeClassName).To(Equal(&nvidia))
+
+					c := deployment.Spec.Template.Spec.Containers[0]
 					g.Expect(c.Name).To(HavePrefix("phi-1-5"))
 					g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
 					g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))

@@ -97,7 +97,7 @@ func neededGPUs(deploy a1.Deployment) (resource.Quantity, error) {
 func addSchedulingProperties(appDeployment *appsv1.Deployment, engineContainer *v1.Container, AIDeployment *a1.AIDeploymentSpec) error {
 	addTopologySpread(&appDeployment.Spec.Template)
 
-	pod := appDeployment.Spec.Template.Spec
+	pod := &appDeployment.Spec.Template.Spec
 	pod.NodeSelector = mergeMaps(pod.NodeSelector, AIDeployment.Deployment.NodeSelector)
 
 	gpus, err := neededGPUs(AIDeployment.Deployment)

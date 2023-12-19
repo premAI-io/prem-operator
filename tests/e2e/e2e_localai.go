@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
+	appsv1 "k8s.io/api/apps/v1"
 	networkv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,7 +29,7 @@ import (
 
 var _ = Describe("localai test", func() {
 	var artifactName string
-	var oper, sds, pods, svc, ingr dynamic.ResourceInterface
+	var deps, oper, sds, pods, svc, ingr dynamic.ResourceInterface
 	var scheme *runtime.Scheme
 	var artifact *api.AIDeployment
 	var startTime time.Time
@@ -46,6 +47,8 @@ var _ = Describe("localai test", func() {
 
 		pods = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("default")
 		oper = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
+		deps = k8s.Resource(schema.GroupVersionResource{Group: appsv1.GroupName, Version: appsv1.SchemeGroupVersion.Version, Resource: "deployments"}).Namespace("default")
+
 
 		uArtifact := unstructured.Unstructured{}
 		uArtifact.Object, _ = runtime.DefaultUnstructuredConverter.ToUnstructured(artifact)
@@ -345,12 +348,15 @@ var _ = Describe("localai test", func() {
 		It("Creates a deployment with the correct GPU count", func() {
 			By("creating the workload with the associated label")
 			Eventually(func(g Gomega) bool {
-				deploymentPod := &corev1.Pod{}
-				if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+				deployment := &appsv1.Deployment{}
+				if !getObjectWithName(deps, deployment, artifactName) {
 					return false
 				}
 
-				c := deploymentPod.Spec.Containers[0]
+				nvidia := "nvidia"
+				g.Expect(deployment.Spec.Template.Spec.RuntimeClassName).To(Equal(&nvidia))
+
+				c := deployment.Spec.Template.Spec.Containers[0]
 				g.Expect(c.Name).To(HavePrefix("localai"))
 				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
 				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
