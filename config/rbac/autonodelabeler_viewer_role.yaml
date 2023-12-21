@@ -1,0 +1,27 @@
+# permissions for end users to view autonodelabelers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: autonodelabeler-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: saas-operator
+    app.kubernetes.io/part-of: saas-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: autonodelabeler-viewer-role
+rules:
+- apiGroups:
+  - premlabs.io
+  resources:
+  - autonodelabelers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - premlabs.io
+  resources:
+  - autonodelabelers/status
+  verbs:
+  - get

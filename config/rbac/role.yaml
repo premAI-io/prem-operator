@@ -8,6 +8,15 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
   - services
   verbs:
   - create
@@ -61,6 +70,32 @@ rules:
   - premlabs.io
   resources:
   - aideployments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - premlabs.io
+  resources:
+  - autonodelabelers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - premlabs.io
+  resources:
+  - autonodelabelers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - premlabs.io
+  resources:
+  - autonodelabelers/status
   verbs:
   - get
   - patch

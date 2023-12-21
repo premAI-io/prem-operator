@@ -49,7 +49,6 @@ var _ = Describe("localai test", func() {
 		oper = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
 		deps = k8s.Resource(schema.GroupVersionResource{Group: appsv1.GroupName, Version: appsv1.SchemeGroupVersion.Version, Resource: "deployments"}).Namespace("default")
 
-
 		uArtifact := unstructured.Unstructured{}
 		uArtifact.Object, _ = runtime.DefaultUnstructuredConverter.ToUnstructured(artifact)
 		resp, err := sds.Create(context.TODO(), &uArtifact, metav1.CreateOptions{})

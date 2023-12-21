@@ -1,0 +1,11 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AutoNodeLabeler
+metadata:
+  name: autolabel
+  namespace: default
+spec:
+  labels:
+    foo/bar.com: baz
+  matchExpression:
+    key: kubernetes.io/arch
+    operator: Exists

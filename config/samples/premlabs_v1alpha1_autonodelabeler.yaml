@@ -1,0 +1,12 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AutoNodeLabeler
+metadata:
+  labels:
+    app.kubernetes.io/name: autonodelabeler
+    app.kubernetes.io/instance: autonodelabeler-sample
+    app.kubernetes.io/part-of: saas-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: saas-operator
+  name: autonodelabeler-sample
+spec:
+  # TODO(user): Add fields here
