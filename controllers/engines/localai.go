@@ -79,8 +79,8 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			},
 		},
 		StartupProbe: &v1.Probe{
-			InitialDelaySeconds: 60,
-			PeriodSeconds:       30,
+			InitialDelaySeconds: 1,
+			PeriodSeconds:       10,
 			FailureThreshold:    120,
 			ProbeHandler: v1.ProbeHandler{
 				HTTPGet: &v1.HTTPGetAction{

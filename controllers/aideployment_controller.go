@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"strings"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -81,8 +82,8 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	requeue, err := aideployment.Reconcile(ent, ctx, r.Client, mlEngine)
-	if requeue {
-		return ctrl.Result{Requeue: true}, err
+	if requeue > 0 {
+		return ctrl.Result{RequeueAfter: time.Second * time.Duration(requeue)}, err
 	}
 
 	return ctrl.Result{}, err

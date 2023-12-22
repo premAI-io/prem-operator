@@ -2,12 +2,20 @@ package e2e_test
 
 import (
 	"context"
+	"time"
+	"bufio"
+	"io"
 
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func getObjectWithLabel(resource dynamic.ResourceInterface, obj metav1.Object, labelName string, labelValue string) bool {
@@ -77,4 +85,33 @@ func getObjectWithName(resource dynamic.ResourceInterface, obj metav1.Object, na
 	}
 
 	return found
+}
+
+func checkLogs(startTime time.Time) {
+	k8s := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())
+	oper := k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
+
+	controllerPod := &corev1.Pod{}
+	getObjectWithLabel(oper, controllerPod, "control-plane", "controller-manager")
+	Expect(controllerPod).ToNot(BeNil())
+
+	clientset := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie())
+	req := clientset.CoreV1().Pods(controllerPod.Namespace).GetLogs(controllerPod.Name, &corev1.PodLogOptions{SinceTime: &metav1.Time{Time: startTime}, Container: "manager"})
+	logs, err := req.Stream(context.Background())
+	Expect(err).ToNot(HaveOccurred())
+	defer logs.Close()
+
+	logReader := bufio.NewReader(logs)
+	lines := 0
+	for {
+		line, err := logReader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		GinkgoWriter.Printf("log: %s", line)
+		Expect(err).ToNot(HaveOccurred())
+		//Expect(line).ToNot(ContainSubstring("ERROR"))
+		lines++
+	}
+	Expect(lines).To(BeNumerically(">", 0))
 }

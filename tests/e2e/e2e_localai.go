@@ -61,6 +61,8 @@ var _ = Describe("localai test", func() {
 		err := sds.Delete(context.Background(), artifactName, metav1.DeleteOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
+		checkLogs(startTime)
+
 		controllerPod := &corev1.Pod{}
 		getObjectWithLabel(oper, controllerPod, "control-plane", "controller-manager")
 		Expect(controllerPod).ToNot(BeNil())
@@ -134,8 +136,8 @@ var _ = Describe("localai test", func() {
 				c := deploymentPod.Spec.Containers[0]
 				g.Expect(c.Name).To(HavePrefix("localai"))
 				g.Expect(c.StartupProbe).ToNot(BeNil())
-				g.Expect(c.StartupProbe.InitialDelaySeconds).To(Equal(int32(60)))
-				g.Expect(c.StartupProbe.PeriodSeconds).To(Equal(int32(30)))
+				g.Expect(c.StartupProbe.InitialDelaySeconds).To(Equal(int32(1)))
+				g.Expect(c.StartupProbe.PeriodSeconds).To(Equal(int32(10)))
 				g.Expect(c.StartupProbe.FailureThreshold).To(Equal(int32(120)))
 
 				g.Expect(c.ReadinessProbe).ToNot(BeNil())
