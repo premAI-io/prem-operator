@@ -20,6 +20,7 @@ import (
 	"context"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -57,13 +58,71 @@ func (r *AutoNodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	// Fetch the Deployment instance
 	dep := &corev1.Node{}
 	err := r.Client.Get(ctx, req.NamespacedName, dep)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return ctrl.Result{}, err
+	}
+
+	if err == nil {
+		r.patchNode(ctx, dep)
+		return ctrl.Result{}, nil
+	}
+
+	dep2 := &premlabsv1alpha1.AutoNodeLabeler{}
+	err = r.Client.Get(ctx, req.NamespacedName, dep2)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	r.patchNode(ctx, dep)
+	r.patchAllNodes(ctx, dep2)
 
 	return ctrl.Result{}, nil
+}
+
+func (r *AutoNodeLabelerReconciler) labelNode(ctx context.Context, n *corev1.Node, l *premlabsv1alpha1.AutoNodeLabeler) {
+	update := false
+
+	if *l.Spec.MatchExpression.Operator == v1.LabelSelectorOpExists {
+		if _, exists := n.Labels[*l.Spec.MatchExpression.Key]; exists {
+			update = true
+		}
+	}
+
+	if *l.Spec.MatchExpression.Operator == v1.LabelSelectorOpIn {
+		if v, exists := n.Labels[*l.Spec.MatchExpression.Key]; exists {
+			for _, vv := range l.Spec.MatchExpression.Values {
+				if vv == v {
+					update = true
+				}
+			}
+		}
+	}
+
+	if update {
+		updateNode := n.DeepCopy()
+		// Add labels
+		for k, v := range l.Spec.Labels {
+			updateNode.Labels[k] = v
+		}
+		// Update node
+		err := r.Update(ctx, updateNode)
+		if err != nil {
+			log.Log.Error(err, "Failed to update node")
+			return
+		}
+	}
+}
+
+func (r *AutoNodeLabelerReconciler) patchAllNodes(ctx context.Context, l *premlabsv1alpha1.AutoNodeLabeler) {
+	nodes := &corev1.NodeList{}
+	err := r.List(ctx, nodes)
+	if err != nil {
+		log.Log.Error(err, "Failed to get list of nodes")
+		return
+	}
+
+	for _, n := range nodes.Items {
+		r.labelNode(ctx, &n, l)
+	}
 }
 
 func (r *AutoNodeLabelerReconciler) patchNode(ctx context.Context, n *corev1.Node) {
@@ -73,38 +132,9 @@ func (r *AutoNodeLabelerReconciler) patchNode(ctx context.Context, n *corev1.Nod
 		log.Log.Error(err, "Failed to get list of AutoNodeLabeler rules")
 		return
 	}
+
 	for _, l := range labels.Items {
-
-		update := false
-		if *l.Spec.MatchExpression.Operator == v1.LabelSelectorOpExists {
-			if _, exists := n.Labels[*l.Spec.MatchExpression.Key]; exists {
-				update = true
-			}
-		}
-
-		if *l.Spec.MatchExpression.Operator == v1.LabelSelectorOpIn {
-			if v, exists := n.Labels[*l.Spec.MatchExpression.Key]; exists {
-				for _, vv := range l.Spec.MatchExpression.Values {
-					if vv == v {
-						update = true
-					}
-				}
-			}
-		}
-
-		if update {
-			updateNode := n.DeepCopy()
-			// Add labels
-			for k, v := range l.Spec.Labels {
-				updateNode.Labels[k] = v
-			}
-			// Update node
-			err := r.Update(ctx, updateNode)
-			if err != nil {
-				log.Log.Error(err, "Failed to update node")
-				return
-			}
-		}
+		r.labelNode(ctx, n, &l)
 	}
 }
 
