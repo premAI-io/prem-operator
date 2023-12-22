@@ -2,7 +2,6 @@ package engines
 
 import (
 	"fmt"
-	"strings"
 
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -56,40 +55,30 @@ func addTopologySpread(tmpl *v1.PodTemplateSpec) {
 }
 
 func neededGPUs(deploy a1.Deployment) (resource.Quantity, error) {
-	mems := resource.MustParse("0")
-	if m, ok := deploy.Resources.Requests["memory"]; ok {
-		mems = m
-	} else {
-		return mems, fmt.Errorf("Deployment needs to request memory")
-	}
-	var memoryPerGPU *resource.Quantity
 	gpus := resource.MustParse("0")
 
-	if v, ok := deploy.NodeSelector["nvidia.com/gpu.memory"]; ok {
-		q := resource.MustParse(v + "Mi")
-		memoryPerGPU = &q
-	}
+	if deploy.Accelerator == nil {
+		if deploy.Resources.Requests == nil {
+			return gpus, nil
+		}
 
-	for k := range deploy.NodeSelector {
-		if strings.HasPrefix(k, "nvidia.com") {
-			if memoryPerGPU == nil {
-				return gpus, fmt.Errorf("Deployment requires GPU but per GPU memory is not specified")
-			}
+		if _, ok := deploy.Resources.Requests["nvidia.com/gpu"]; ok {
+			return gpus, fmt.Errorf("deployment requests Nvidia GPU but no accelerator is specified")
+		} else {
+			return gpus, nil
 		}
 	}
 
-	if memoryPerGPU == nil {
-		return gpus, nil
+	// If you add non-Nvidia accelerators, remember to set the pod runtime class name
+	if deploy.Accelerator.Interface != a1.AcceleratorInterfaceCUDA {
+		return gpus, fmt.Errorf("unsupported accelerator interface: %s", deploy.Accelerator.Interface)
 	}
 
-	for mems.Cmp(*memoryPerGPU) > 0 {
-		gpus.Add(resource.MustParse("1"))
-		mems.Sub(*memoryPerGPU)
+	if gpusSpec, ok := deploy.Resources.Requests["nvidia.com/gpu"]; ok {
+		return gpusSpec, nil
 	}
 
-	if !mems.IsZero() {
-		gpus.Add(resource.MustParse("1"))
-	}
+	gpus.Add(resource.MustParse("1"))
 
 	return gpus, nil
 }
@@ -128,11 +117,13 @@ func addSchedulingProperties(appDeployment *appsv1.Deployment, engineContainer *
 	)
 
 	if !gpus.IsZero() {
-		runtimeClassName := "nvidia"
-
 		engineContainer.Resources.Requests["nvidia.com/gpu"] = gpus
 		engineContainer.Resources.Limits["nvidia.com/gpu"] = gpus
-		pod.RuntimeClassName = &runtimeClassName
+
+		if pod.RuntimeClassName == nil {
+			runtimeClassName := "nvidia"
+			pod.RuntimeClassName = &runtimeClassName
+		}
 	}
 
 	return nil

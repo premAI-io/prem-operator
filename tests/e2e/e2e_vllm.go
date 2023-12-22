@@ -244,8 +244,11 @@ var _ = Describe("vllm test", func() {
 						},
 						Models: custModel,
 						Deployment: api.Deployment{
-							NodeSelector: map[string]string{
-								"nvidia.com/gpu.memory": "81920",
+							Accelerator: &api.Accelerator{
+								Interface: api.AcceleratorInterfaceCUDA,
+								MinVersion: &api.Version{
+									Major: 7,
+								},
 							},
 							Resources: corev1.ResourceRequirements{
 								Requests: map[corev1.ResourceName]resource.Quantity{
@@ -272,8 +275,8 @@ var _ = Describe("vllm test", func() {
 					g.Expect(c.Name).To(HavePrefix("phi-1-5"))
 					g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
 					g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
-					g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
-					g.Expect(c.Resources.Limits["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
+					g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("1")))
+					g.Expect(c.Resources.Limits["nvidia.com/gpu"]).To(Equal(resource.MustParse("1")))
 
 					return true
 				}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())

@@ -19,7 +19,12 @@ spec:
         url: "mistralai/Mistral-7B-v0.1"
         format: "gguf"
   deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
     resources:
-      memory: "16Gi"
-    nodeSelector:
-      nvidia.com/gpu.memory: 81920
+      requests:
+        cpu: "1"
+        memory: "16Gi"
+        nvidia.com/gpu: "2"

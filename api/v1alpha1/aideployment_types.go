@@ -66,16 +66,43 @@ type Probe struct {
 	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
+type AcceleratorInterface string
+
+const (
+	AcceleratorInterfaceCUDA AcceleratorInterface = "CUDA"
+	AcceleratorInterfaceROCm AcceleratorInterface = "ROCm"
+	AcceleratorInterfaceOpenCL AcceleratorInterface = "OpenCL"
+)
+
+type Version struct {
+	Major int32 `json:"major"`
+	// +optional
+	Minor int32 `json:"minor,omitempty"`
+}
+
+type Accelerator struct {
+	// The name of something the hardware and software needs to support
+	Interface AcceleratorInterface `json:"interface"`
+	// The minimum needed version of the interface or whatever
+	// (e.g. nvidia compute engine)
+	// +optional
+	MinVersion *Version `json:"minVersion,omitempty"`
+}
+
 type Deployment struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
+	// What kind of interface (e.g. CUDA) the accelerator hardware
+	// should support.
+	// +optional
+	Accelerator *Accelerator `json:"accelerator,omitempty"`
+
 	// The deployment must request the minimum amount of memory required by the models
+	// +optional
 	Resources v1.ResourceRequirements `json:"resources"`
 
-	// If using a GPU the amount of per GPU memory must be specified
-	// e.g. nvida.com/gpu.memory: "81920" (80GB A100)
-	// This is used to calculate the number of required GPUs
+	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 
 	// +optional

@@ -37,6 +37,30 @@ spec:
             properties:
               deployment:
                 properties:
+                  accelerator:
+                    description: What kind of interface (e.g. CUDA) the accelerator
+                      hardware should support.
+                    properties:
+                      interface:
+                        description: The name of something the hardware and software
+                          needs to support
+                        type: string
+                      minVersion:
+                        description: The minimum needed version of the interface or
+                          whatever (e.g. nvidia compute engine)
+                        properties:
+                          major:
+                            format: int32
+                            type: integer
+                          minor:
+                            format: int32
+                            type: integer
+                        required:
+                        - major
+                        type: object
+                    required:
+                    - interface
+                    type: object
                   annotations:
                     additionalProperties:
                       type: string
@@ -69,9 +93,6 @@ spec:
                   nodeSelector:
                     additionalProperties:
                       type: string
-                    description: 'If using a GPU the amount of per GPU memory must
-                      be specified e.g. nvida.com/gpu.memory: "81920" (80GB A100)
-                      This is used to calculate the number of required GPUs'
                     type: object
                   readinessProbe:
                     properties:
@@ -7677,8 +7698,6 @@ spec:
                         - containers
                         type: object
                     type: object
-                required:
-                - resources
                 type: object
               endpoint:
                 items:
