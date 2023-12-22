@@ -37,7 +37,7 @@ type AutoNodeLabelerReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups="",resources=nodes,verbs=get;list;update;patch
+//+kubebuilder:rbac:groups="",resources=nodes,verbs=get;list;watch;update;patch
 //+kubebuilder:rbac:groups=premlabs.io,resources=autonodelabelers,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=premlabs.io,resources=autonodelabelers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=premlabs.io,resources=autonodelabelers/finalizers,verbs=update
