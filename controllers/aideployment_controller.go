@@ -79,6 +79,8 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+	case engines.GenericEngine:
+		mlEngine = engines.NewGeneric(&ent)
 	}
 
 	requeue, err := aideployment.Reconcile(ent, ctx, r.Client, mlEngine)

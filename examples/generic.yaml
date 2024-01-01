@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-script
+  namespace: default
+data:
+  index.js: |
+    console.log(`Starting ${Bun.env.MODEL_ALIAS} API!`);
+    Bun.serve({
+      fetch(req) {
+        console.log(req);
+        return new Response("gpt-4");
+      },
+    });
+---
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment
+metadata:
+  name: generic-test
+  namespace: default
+spec:
+  # single node instance
+  # no dashboard support
+  engine:
+    name: "generic"
+  endpoint:
+    - domain: "foo.127.0.0.1.nip.io"
+      port: 8080
+  models:
+    - model_name: "generic-test"
+  deployment:
+    template:
+      spec:
+        containers:
+          - name: "generic-test"
+            image: oven/bun:alpine
+            volumeMounts:
+              - name: api-script
+                mountPath: /home/bun/app
+            args:
+              - -p
+              - "8080"
+              - ./index.js
+            startupProbe:
+              httpGet:
+                path: /readyz
+                port: 8080
+              initialDelaySeconds: 1
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 3
+            readinessProbe:
+              httpGet:
+                path: /healthz
+                port: 8080
+              failureThreshold: 3
+            livenessProbe:
+              httpGet:
+                path: /healthz
+                port: 8080
+              periodSeconds: 60
+              timeoutSeconds: 5
+              failureThreshold: 3
+        volumes:
+          - name: api-script
+            configMap:
+              name: api-script
+    resources:
+      requests:
+        cpu: "0.1"
+        memory: "1Mi"
+  env:
+    - name: "MODEL_ALIAS"
+      value: "GPT-4"
