@@ -47,7 +47,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	deployment := appsv1.Deployment{}
 	if l.AIDeployment.Spec.Deployment.PodTemplate != nil {
-		deployment.Spec.Template = *l.AIDeployment.Spec.Deployment.PodTemplate
+		deployment.Spec.Template = *l.AIDeployment.Spec.Deployment.PodTemplate.DeepCopy()
 	} else {
 		deployment.Spec.Template = v1.PodTemplateSpec{}
 	}
