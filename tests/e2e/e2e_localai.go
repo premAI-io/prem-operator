@@ -1,7 +1,6 @@
 package e2e_test
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -23,13 +22,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var _ = Describe("localai test", func() {
 	var artifactName string
-	var deps, oper, sds, pods, svc, ingr dynamic.ResourceInterface
+	var deps, sds, pods, svc, ingr dynamic.ResourceInterface
 	var scheme *runtime.Scheme
 	var artifact *api.AIDeployment
 	var startTime time.Time
@@ -46,7 +44,6 @@ var _ = Describe("localai test", func() {
 		ingr = k8s.Resource(schema.GroupVersionResource{Group: networkv1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "ingresses"}).Namespace("default")
 
 		pods = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("default")
-		oper = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
 		deps = k8s.Resource(schema.GroupVersionResource{Group: appsv1.GroupName, Version: appsv1.SchemeGroupVersion.Version, Resource: "deployments"}).Namespace("default")
 
 		uArtifact := unstructured.Unstructured{}
@@ -62,30 +59,6 @@ var _ = Describe("localai test", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		checkLogs(startTime)
-
-		controllerPod := &corev1.Pod{}
-		getObjectWithLabel(oper, controllerPod, "control-plane", "controller-manager")
-		Expect(controllerPod).ToNot(BeNil())
-
-		clientset := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie())
-		req := clientset.CoreV1().Pods(controllerPod.Namespace).GetLogs(controllerPod.Name, &corev1.PodLogOptions{SinceTime: &metav1.Time{Time: startTime}, Container: "manager"})
-		logs, err := req.Stream(context.Background())
-		Expect(err).ToNot(HaveOccurred())
-		defer logs.Close()
-
-		logReader := bufio.NewReader(logs)
-		lines := 0
-		for {
-			line, err := logReader.ReadString('\n')
-			if err == io.EOF {
-				break
-			}
-			GinkgoWriter.Printf("log: %s", line)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(line).ToNot(ContainSubstring("ERROR"))
-			lines++
-		}
-		Expect(lines).To(BeNumerically(">", 0))
 	})
 
 	When("the config is good", func() {

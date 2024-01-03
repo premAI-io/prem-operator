@@ -1,9 +1,7 @@
 package e2e_test
 
 import (
-	"bufio"
 	"context"
-	"io"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -19,13 +17,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var _ = Describe("vllm test", func() {
 	var artifactName string
-	var deps, oper, sds, pods dynamic.ResourceInterface
+	var deps, sds, pods dynamic.ResourceInterface
 	var scheme *runtime.Scheme
 	var artifact *api.AIDeployment
 	var startTime time.Time
@@ -47,7 +44,6 @@ var _ = Describe("vllm test", func() {
 
 		sds = k8s.Resource(schema.GroupVersionResource{Group: api.GroupVersion.Group, Version: api.GroupVersion.Version, Resource: "aideployments"}).Namespace("default")
 		pods = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("default")
-		oper = k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
 		deps = k8s.Resource(schema.GroupVersionResource{Group: appsv1.GroupName, Version: appsv1.SchemeGroupVersion.Version, Resource: "deployments"}).Namespace("default")
 
 		uArtifact := unstructured.Unstructured{}
@@ -62,29 +58,7 @@ var _ = Describe("vllm test", func() {
 		err := sds.Delete(context.Background(), artifactName, metav1.DeleteOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		controllerPod := &corev1.Pod{}
-		getObjectWithLabel(oper, controllerPod, "control-plane", "controller-manager")
-		Expect(controllerPod).ToNot(BeNil())
-
-		clientset := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie())
-		req := clientset.CoreV1().Pods(controllerPod.Namespace).GetLogs(controllerPod.Name, &corev1.PodLogOptions{SinceTime: &metav1.Time{Time: startTime}, Container: "manager"})
-		logs, err := req.Stream(context.Background())
-		Expect(err).ToNot(HaveOccurred())
-		defer logs.Close()
-
-		logReader := bufio.NewReader(logs)
-		lines := 0
-		for {
-			line, err := logReader.ReadString('\n')
-			if err == io.EOF {
-				break
-			}
-			GinkgoWriter.Printf("log: %s", line)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(line).ToNot(ContainSubstring("ERROR"))
-			lines++
-		}
-		Expect(lines).To(BeNumerically(">", 0))
+		checkLogs(startTime)
 	})
 
 	When("the config is good", func() {
