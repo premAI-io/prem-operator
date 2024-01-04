@@ -79,7 +79,6 @@ jobs:
           app_version=$RELEASE_VERSION
           echo "Login"
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | helm registry login docker.io -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
-          echo "Package"
-          helm package --version "${version}" --app-version $app_version charts/saas-controller
-          echo "Push"
-          helm push saas-controller-${version}.tgz oci://docker.io/${{ env.IMAGE_CHART_NAME }}
+          echo "Package and push"
+          helm package --version "${version}" --app-version $app_version charts/saas-controller-chart
+          helm push saas-controller-${version}.tgz oci://docker.io/premai

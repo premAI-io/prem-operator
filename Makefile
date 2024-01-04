@@ -294,7 +294,9 @@ charts:
 	mkdir charts
 
 .PHONY: helm-controller
-helm-controller: manifests kustomize charts ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+helm-controller: manifests kustomize charts charts/saas-controller-chart
+
+charts/saas-controller-chart:
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | helmify -image-pull-secrets -crd-dir saas-controller
-	mv saas-controller charts
+	$(KUSTOMIZE) build config/default | helmify -image-pull-secrets -crd-dir saas-controller-chart
+	mv saas-controller-chart charts
