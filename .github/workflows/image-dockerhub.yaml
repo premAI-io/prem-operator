@@ -78,4 +78,4 @@ jobs:
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | helm registry login docker.io -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
           echo "Package"
           helm package --version "${version}" --app-version $app_version charts/saas-controller-chart
-          helm push saas-controller-${version}.tgz oci://docker.io/premai
+          helm push saas-controller-chart-${version}.tgz oci://docker.io/premai
