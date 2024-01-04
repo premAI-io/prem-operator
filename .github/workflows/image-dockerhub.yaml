@@ -78,5 +78,5 @@ jobs:
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | helm registry login registry-1.docker.io -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
           echo "Package"
           helm package --version "${version}" --app-version $app_version charts/saas-controller
-          echo "Push"
-          helm push saas-controller-${version}.tgz oci://registry-1.docker.io/${{ env.IMAGE_CHART_NAME }}
+          echo "Push to oci://registry-1.docker.io/${{ env.IMAGE_CHART_NAME }}"
+          helm push saas-controller-${version}.tgz oci://registry-1.docker.io/${{ env.IMAGE_CHART_NAME }} --debug
