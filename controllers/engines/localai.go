@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
+	"github.com/premAI-io/saas-controller/controllers/constants"
+	"github.com/premAI-io/saas-controller/pkg/utils"
 
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
@@ -69,7 +71,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	}
 	expose := v1.Container{
 		ImagePullPolicy: v1.PullAlways,
-		Name:            l.AIDeployment.Name,
+		Name:            constants.ContainerEngineName,
 		Image:           image,
 		Env:             v,
 		VolumeMounts: []v1.VolumeMount{
@@ -99,10 +101,6 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			FailureThreshold: 10,
 			ProbeHandler:     healthProbeHandler,
 		},
-	}
-
-	if err := addSchedulingProperties(&deployment, &expose, &l.AIDeployment.Spec); err != nil {
-		return &deployment, err
 	}
 
 	mergeProbe(l.AIDeployment.Spec.Deployment.StartupProbe, expose.StartupProbe)
@@ -174,13 +172,13 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	deploymentLabels := resources.GenDefaultLabels(l.AIDeployment.Name)
 
-	deployment.Spec.Template.Labels = mergeMaps(
+	deployment.Spec.Template.Labels = utils.MergeMaps(
 		deploymentLabels,
 		deployment.Spec.Template.Labels,
 		l.AIDeployment.Spec.Deployment.Labels,
 	)
 
-	deployment.Spec.Template.Annotations = mergeMaps(
+	deployment.Spec.Template.Annotations = utils.MergeMaps(
 		deployment.Spec.Template.Annotations,
 		l.AIDeployment.Spec.Deployment.Annotations,
 	)

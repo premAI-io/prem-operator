@@ -11,6 +11,7 @@ import (
 
 	"github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
+	"github.com/premAI-io/saas-controller/controllers/scheduling"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +29,12 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 	if err != nil {
 		return 0, err
 	}
+
+	err = scheduling.AddSchedulingProperties(deployment, sd.Spec)
+	if err != nil {
+		return 0, err
+	}
+
 	d := &appsv1.Deployment{}
 	// try to find if a deployment already exists
 	if err := c.Get(ctx, types.NamespacedName{Namespace: sd.GetNamespace(), Name: sd.GetName()}, d); err != nil {

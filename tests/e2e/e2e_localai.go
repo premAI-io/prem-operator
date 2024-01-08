@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/controllers/constants"
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	networkv1 "k8s.io/api/networking/v1"
@@ -107,7 +108,7 @@ var _ = Describe("localai test", func() {
 				}
 
 				c := deploymentPod.Spec.Containers[0]
-				g.Expect(c.Name).To(HavePrefix("localai"))
+				g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
 				g.Expect(c.StartupProbe).ToNot(BeNil())
 				g.Expect(c.StartupProbe.InitialDelaySeconds).To(Equal(int32(1)))
 				g.Expect(c.StartupProbe.PeriodSeconds).To(Equal(int32(10)))
@@ -128,7 +129,7 @@ var _ = Describe("localai test", func() {
 				cpus := c.Resources.Limits["cpu"]
 				g.Expect(cpus.Cmp(c.Resources.Requests["cpu"])).To(BeNumerically(">=", 0))
 
-				g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.Quantity{}))
+				g.Expect(c.Resources.Requests[constants.NvidiaGPULabel]).To(Equal(resource.Quantity{}))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
@@ -257,7 +258,7 @@ var _ = Describe("localai test", func() {
 				}
 
 				c := deploymentPod.Spec.Containers[0]
-				g.Expect(c.Name).To(HavePrefix("localai"))
+				g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
 				g.Expect(c.StartupProbe).ToNot(BeNil())
 				g.Expect(c.StartupProbe.InitialDelaySeconds).To(Equal(int32(66)))
 				g.Expect(c.StartupProbe.PeriodSeconds).To(Equal(int32(33)))
@@ -331,11 +332,11 @@ var _ = Describe("localai test", func() {
 				g.Expect(deployment.Spec.Template.Spec.RuntimeClassName).To(Equal(&nvidia))
 
 				c := deployment.Spec.Template.Spec.Containers[0]
-				g.Expect(c.Name).To(HavePrefix("localai"))
+				g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
 				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
 				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
-				g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("1")))
-				g.Expect(c.Resources.Limits["nvidia.com/gpu"]).To(Equal(resource.MustParse("1")))
+				g.Expect(c.Resources.Requests[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("1")))
+				g.Expect(c.Resources.Limits[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("1")))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())

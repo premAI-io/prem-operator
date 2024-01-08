@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
+	"github.com/premAI-io/saas-controller/controllers/constants"
+	"github.com/premAI-io/saas-controller/pkg/utils"
 
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
@@ -50,6 +52,7 @@ func (l *Generic) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	serviceAccount := false
 
 	expose := &pod.Containers[0]
+	expose.Name = constants.ContainerEngineName
 
 	if len(expose.Env) > 0 {
 		return nil, fmt.Errorf("Generic AI deployment %s:%s: Specify env vars for the first container in the AIDeployment, not the container", objMeta.Namespace, objMeta.Name)
@@ -61,10 +64,6 @@ func (l *Generic) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	}
 	expose.Ports = []v1.ContainerPort{{ContainerPort: l.AIDeployment.Spec.Endpoint[0].Port}}
 
-	if err := addSchedulingProperties(&deployment, expose, &l.AIDeployment.Spec); err != nil {
-		return &deployment, err
-	}
-
 	mergeProbe(l.AIDeployment.Spec.Deployment.StartupProbe, expose.StartupProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.ReadinessProbe, expose.ReadinessProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.LivenessProbe, expose.LivenessProbe)
@@ -73,13 +72,13 @@ func (l *Generic) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	deploymentLabels := resources.GenDefaultLabels(l.AIDeployment.Name)
 
-	deployment.Spec.Template.Labels = mergeMaps(
+	deployment.Spec.Template.Labels = utils.MergeMaps(
 		deploymentLabels,
 		deployment.Spec.Template.Labels,
 		l.AIDeployment.Spec.Deployment.Labels,
 	)
 
-	deployment.Spec.Template.Annotations = mergeMaps(
+	deployment.Spec.Template.Annotations = utils.MergeMaps(
 		deployment.Spec.Template.Annotations,
 		l.AIDeployment.Spec.Deployment.Annotations,
 	)

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/controllers/constants"
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -164,8 +165,8 @@ var _ = Describe("generic test", func() {
 							},
 							Resources: corev1.ResourceRequirements{
 								Requests: map[corev1.ResourceName]resource.Quantity{
-									"memory":         resource.MustParse("200Gi"),
-									"nvidia.com/gpu": resource.MustParse("3"),
+									"memory":                 resource.MustParse("200Gi"),
+									constants.NvidiaGPULabel: resource.MustParse("3"),
 								},
 							},
 							PodTemplate: &corev1.PodTemplateSpec{
@@ -200,11 +201,11 @@ var _ = Describe("generic test", func() {
 					g.Expect(deployment.Spec.Template.Spec.RuntimeClassName).To(Equal(&nvidia))
 
 					c := deployment.Spec.Template.Spec.Containers[0]
-					g.Expect(c.Name).To(HavePrefix("bun"))
+					g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
 					g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
 					g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
-					g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
-					g.Expect(c.Resources.Limits["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
+					g.Expect(c.Resources.Requests[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("3")))
+					g.Expect(c.Resources.Limits[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("3")))
 
 					return true
 				}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())

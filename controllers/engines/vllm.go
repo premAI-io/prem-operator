@@ -2,9 +2,12 @@ package engines
 
 import (
 	"fmt"
+
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
+	"github.com/premAI-io/saas-controller/controllers/constants"
 	"github.com/premAI-io/saas-controller/controllers/resources"
+	"github.com/premAI-io/saas-controller/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -39,8 +42,6 @@ type vllmAi struct {
 	resourceName string
 	// k8s namespace
 	namespace string
-	// name of the container
-	containerName string
 
 	// used to customize the deployment
 	deploymentOptions *a1.AIDeployment
@@ -73,7 +74,6 @@ func NewVllmAi(ai *a1.AIDeployment) (aideployment.MLEngine, error) {
 		resourceName:      ai.Name,
 		namespace:         ai.Namespace,
 		engineEnvVars:     ai.Spec.Env,
-		containerName:     model.Custom.Name,
 		deploymentOptions: ai,
 	}, nil
 }
@@ -93,7 +93,7 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	container := v1.Container{
 		ImagePullPolicy: v1.PullAlways,
-		Name:            v.containerName,
+		Name:            constants.ContainerEngineName,
 		Image:           v.engineImage,
 		Env:             v.engineEnvVars,
 		VolumeMounts: []v1.VolumeMount{
@@ -145,11 +145,11 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: mergeMaps(
+					Labels: utils.MergeMaps(
 						resources.GenDefaultLabels(v.resourceName),
 						v.deploymentOptions.Spec.Deployment.Labels,
 					),
-					Annotations: mergeMaps(
+					Annotations: utils.MergeMaps(
 						v.deploymentOptions.Spec.Deployment.Annotations,
 					),
 				},
@@ -169,9 +169,6 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
-	if err := addSchedulingProperties(deployment, &container, &v.deploymentOptions.Spec); err != nil {
-		return deployment, err
-	}
 	deployment.Spec.Template.Spec.Containers = append(deployment.Spec.Template.Spec.Containers, container)
 	return deployment, nil
 }

@@ -9,16 +9,16 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	api "github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/saas-controller/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	networkv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"github.com/premAI-io/saas-controller/controllers/resources"
 )
 
 func randomString(length int) string {
@@ -69,7 +69,7 @@ var _ = Describe("update test", func() {
 				},
 				Env: []corev1.EnvVar{
 					{
-						Name: "DEBUG",
+						Name:  "DEBUG",
 						Value: "true",
 					},
 				},
@@ -163,8 +163,8 @@ var _ = Describe("update test", func() {
 		err = runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, sd)
 		Expect(err).ToNot(HaveOccurred())
 
-		sd.Spec.Service.Labels = map[string]string {"a-test-lable": "test"}
-		sd.Spec.Ingress.Labels = map[string]string {"a-test-lable": "test"}
+		sd.Spec.Service.Labels = map[string]string{"a-test-lable": "test"}
+		sd.Spec.Ingress.Labels = map[string]string{"a-test-lable": "test"}
 
 		un, err = runtime.DefaultUnstructuredConverter.ToUnstructured(sd)
 		Expect(err).ToNot(HaveOccurred())
@@ -183,11 +183,7 @@ var _ = Describe("update test", func() {
 			}
 
 			i := &networkv1.Ingress{}
-			if !getObjectWithLabel(ingr, i, "a-test-lable", "test") {
-				return false
-			}
-
-			return true
+			return !getObjectWithLabel(ingr, i, "a-test-lable", "test")
 		})
 	})
 })
