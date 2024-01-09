@@ -91,23 +91,11 @@ func AddSchedulingProperties(appDeployment *appsv1.Deployment, AIDeployment a1.A
 	}
 
 	engineContainer.Resources.Requests = utils.MergeMaps(
-		map[v1.ResourceName]resource.Quantity{
-			"cpu": resource.MustParse("2"),
-		},
 		engineContainer.Resources.Requests,
 		AIDeployment.Deployment.Resources.Requests,
 	)
 
-	ramLimit := engineContainer.Resources.Requests["memory"]
-	ramLimit.Add(resource.MustParse("4Gi"))
-	cpuLimit := engineContainer.Resources.Requests["cpu"]
-	cpuLimit.Add(resource.MustParse("2"))
-
 	engineContainer.Resources.Limits = utils.MergeMaps(
-		map[v1.ResourceName]resource.Quantity{
-			"cpu":    cpuLimit,
-			"memory": ramLimit,
-		},
 		engineContainer.Resources.Limits,
 		AIDeployment.Deployment.Resources.Limits,
 	)

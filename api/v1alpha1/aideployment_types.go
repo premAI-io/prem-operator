@@ -69,8 +69,8 @@ type Probe struct {
 type AcceleratorInterface string
 
 const (
-	AcceleratorInterfaceCUDA AcceleratorInterface = "CUDA"
-	AcceleratorInterfaceROCm AcceleratorInterface = "ROCm"
+	AcceleratorInterfaceCUDA   AcceleratorInterface = "CUDA"
+	AcceleratorInterfaceROCm   AcceleratorInterface = "ROCm"
 	AcceleratorInterfaceOpenCL AcceleratorInterface = "OpenCL"
 )
 
@@ -100,7 +100,7 @@ type Deployment struct {
 
 	// The deployment must request the minimum amount of memory required by the models
 	// +optional
-	Resources v1.ResourceRequirements `json:"resources"`
+	Resources v1.ResourceRequirements `json:"resources,omitempty"`
 
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`

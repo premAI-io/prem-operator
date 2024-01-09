@@ -79,13 +79,6 @@ var _ = Describe("vllm test", func() {
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
 					}},
-					Deployment: api.Deployment{
-						Resources: corev1.ResourceRequirements{
-							Requests: map[corev1.ResourceName]resource.Quantity{
-								"memory": resource.MustParse("3Gi"),
-							},
-						},
-					},
 					Models: custModel,
 				},
 			}
@@ -114,12 +107,10 @@ var _ = Describe("vllm test", func() {
 				g.Expect(c.LivenessProbe.TimeoutSeconds).To(Equal(int32(15)))
 				g.Expect(c.LivenessProbe.FailureThreshold).To(Equal(int32(10)))
 
-				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("3Gi")))
-				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
-				mems := c.Resources.Limits["memory"]
-				g.Expect(mems.Cmp(c.Resources.Requests["memory"])).To(BeNumerically(">", 0))
-				cpus := c.Resources.Limits["cpu"]
-				g.Expect(cpus.Cmp(c.Resources.Requests["cpu"])).To(BeNumerically(">=", 0))
+				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.Quantity{}))
+				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.Quantity{}))
+				g.Expect(c.Resources.Limits["memory"]).To(Equal(resource.Quantity{}))
+				g.Expect(c.Resources.Limits["cpu"]).To(Equal(resource.Quantity{}))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
@@ -249,7 +240,6 @@ var _ = Describe("vllm test", func() {
 					c := deployment.Spec.Template.Spec.Containers[0]
 					g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
 					g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
-					g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
 					g.Expect(c.Resources.Requests[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("1")))
 					g.Expect(c.Resources.Limits[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("1")))
 

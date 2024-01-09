@@ -78,11 +78,6 @@ var _ = Describe("generic test", func() {
 						Port:   8081,
 					}},
 					Deployment: api.Deployment{
-						Resources: corev1.ResourceRequirements{
-							Requests: map[corev1.ResourceName]resource.Quantity{
-								"memory": resource.MustParse("3Gi"),
-							},
-						},
 						PodTemplate: &corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
 								ImagePullSecrets: []corev1.LocalObjectReference{
@@ -115,13 +110,6 @@ var _ = Describe("generic test", func() {
 				c := deploymentPod.Spec.Containers[0]
 				g.Expect(c.Name).To(HavePrefix("bun"))
 				g.Expect(c.Image).To(Equal("oven/bun"))
-
-				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("3Gi")))
-				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
-				mems := c.Resources.Limits["memory"]
-				g.Expect(mems.Cmp(c.Resources.Requests["memory"])).To(BeNumerically(">", 0))
-				cpus := c.Resources.Limits["cpu"]
-				g.Expect(cpus.Cmp(c.Resources.Requests["cpu"])).To(BeNumerically(">=", 0))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
@@ -203,7 +191,6 @@ var _ = Describe("generic test", func() {
 					c := deployment.Spec.Template.Spec.Containers[0]
 					g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
 					g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
-					g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
 					g.Expect(c.Resources.Requests[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("3")))
 					g.Expect(c.Resources.Limits[constants.NvidiaGPULabel]).To(Equal(resource.MustParse("3")))
 

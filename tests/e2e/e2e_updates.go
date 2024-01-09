@@ -12,7 +12,6 @@ import (
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -60,13 +59,6 @@ var _ = Describe("update test", func() {
 			},
 			Spec: api.AIDeploymentSpec{
 				Engine: api.AIEngine{Name: "localai"},
-				Deployment: api.Deployment{
-					Resources: corev1.ResourceRequirements{
-						Requests: map[corev1.ResourceName]resource.Quantity{
-							"memory": resource.MustParse("70Mi"),
-						},
-					},
-				},
 				Env: []corev1.EnvVar{
 					{
 						Name:  "DEBUG",
