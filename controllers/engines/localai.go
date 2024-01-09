@@ -37,14 +37,14 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		OwnerReferences: resources.GenOwner(owner),
 	}
 
-	imageTag := "latest"
-	if l.AIDeployment.Spec.Engine.Options["imageTag"] != "" {
-		imageTag = l.AIDeployment.Spec.Engine.Options["imageTag"]
+	imageTag := constants.ImageTagLatest
+	if l.AIDeployment.Spec.Engine.Options[constants.ImageTagKey] != "" {
+		imageTag = l.AIDeployment.Spec.Engine.Options[constants.ImageTagKey]
 	}
 
-	imageRepository := "quay.io/go-skynet/local-ai"
-	if l.AIDeployment.Spec.Engine.Options["imageRepository"] != "" {
-		imageRepository = l.AIDeployment.Spec.Engine.Options["imageRepository"]
+	imageRepository := constants.ImageRepositoryLocalai
+	if l.AIDeployment.Spec.Engine.Options[constants.ImageRepositoryKey] != "" {
+		imageRepository = l.AIDeployment.Spec.Engine.Options[constants.ImageRepositoryKey]
 	}
 
 	deployment := appsv1.Deployment{}

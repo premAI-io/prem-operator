@@ -247,5 +247,63 @@ var _ = Describe("vllm test", func() {
 				}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
 			})
 		})
+
+		When("We specify AWQ in engine options", func() {
+			BeforeEach(func() {
+				artifact = &api.AIDeployment{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "AIDeployment",
+						APIVersion: api.GroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						GenerateName: "vllm-",
+					},
+					Spec: api.AIDeploymentSpec{
+						Engine: api.AIEngine{
+							Name: "vllm",
+							Options: map[string]string{
+								constants.DtypeKey:        "float16",
+								constants.QuantizationKey: "awq",
+							},
+						},
+						Endpoint: []api.Endpoint{{
+							Domain: "foo.127.0.0.1.nip.io",
+						}},
+						Models: []api.AIModel{{
+							Custom: &api.AIModelCustom{
+								Format: api.AIModelFormatSafeTensor,
+								Name:   "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ",
+								Url:    "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ",
+							},
+						}},
+						Deployment: api.Deployment{
+							Accelerator: &api.Accelerator{
+								Interface: api.AcceleratorInterfaceCUDA,
+								MinVersion: &api.Version{
+									Major: 8,
+								},
+							},
+						},
+					},
+				}
+			})
+
+			It("Creates an engine with the correct arguments", func() {
+				By("creating the workload with the associated label")
+				Eventually(func(g Gomega) bool {
+					deployment := &appsv1.Deployment{}
+					if !getObjectWithName(deps, deployment, artifactName) {
+						return false
+					}
+
+					c := deployment.Spec.Template.Spec.Containers[0]
+					g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
+					g.Expect(c.Args).To(ContainElement("--dtype=float16"))
+					g.Expect(c.Args).To(ContainElement("--quantization=awq"))
+
+					return true
+				})
+			})
+		})
 	})
 })

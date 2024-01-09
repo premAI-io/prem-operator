@@ -20,8 +20,7 @@ const (
 	vllmContainerVolumePath = "/root/.cache/huggingface"
 )
 
-var (
-	vllmImageRepo   = "vllm/vllm-openai"
+const (
 	vllmImageFormat = "%s:%s"
 )
 
@@ -58,12 +57,12 @@ func NewVllmAi(ai *a1.AIDeployment) (aideployment.MLEngine, error) {
 
 	model := ai.Spec.Models[0]
 	imageTag := "latest"
-	imageRepo := vllmImageRepo
-	if ai.Spec.Engine.Options["imageTag"] != "" {
-		imageTag = ai.Spec.Engine.Options["imageTag"]
+	imageRepo := constants.ImageRepositoryVllm
+	if ai.Spec.Engine.Options[constants.ImageTagKey] != "" {
+		imageTag = ai.Spec.Engine.Options[constants.ImageTagKey]
 	}
-	if ai.Spec.Engine.Options["imageRepo"] != "" {
-		imageRepo = ai.Spec.Engine.Options["imageRepo"]
+	if ai.Spec.Engine.Options[constants.ImageRepositoryKey] != "" {
+		imageRepo = ai.Spec.Engine.Options[constants.ImageRepositoryKey]
 	}
 	engineImage := fmt.Sprintf(vllmImageFormat, imageRepo, imageTag)
 
@@ -121,6 +120,22 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			FailureThreshold: 10,
 			ProbeHandler:     healthProbeHandler,
 		},
+	}
+
+	if dtype, ok := v.deploymentOptions.Spec.Engine.Options[constants.DtypeKey]; ok {
+		if utils.IsAlphanumeric(dtype) {
+			container.Args = append(container.Args, "--dtype", dtype)
+		} else {
+			return nil, fmt.Errorf("dtype must be alphanumeric")
+		}
+	}
+
+	if quant, ok := v.deploymentOptions.Spec.Engine.Options[constants.QuantizationKey]; ok {
+		if utils.IsAlphanumeric(quant) {
+			container.Args = append(container.Args, "--quantization", quant)
+		} else {
+			return nil, fmt.Errorf("quantization must be alphanumeric")
+		}
 	}
 
 	mergeProbe(v.deploymentOptions.Spec.Deployment.StartupProbe, container.StartupProbe)
