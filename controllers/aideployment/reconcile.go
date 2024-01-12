@@ -11,7 +11,6 @@ import (
 
 	"github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/resources"
-	"github.com/premAI-io/saas-controller/controllers/scheduling"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,12 +24,20 @@ type MLEngine interface {
 
 func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Client, mle MLEngine) (int, error) {
 	requeue := 0
+
+	// Generate a Deployment from the Engine
 	deployment, err := mle.Deployment(&sd.ObjectMeta)
 	if err != nil {
 		return 0, err
 	}
 
-	err = scheduling.AddSchedulingProperties(deployment, sd.Spec)
+	container := findContainerEngine(deployment)
+	if container != nil {
+		container.Args = append(container.Args, sd.Spec.Args...)
+	}
+
+	// Add generic Scheduling properties
+	err = AddSchedulingProperties(deployment, sd.Spec)
 	if err != nil {
 		return 0, err
 	}

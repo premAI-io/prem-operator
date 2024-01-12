@@ -2,7 +2,6 @@ package engines
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
 	"github.com/premAI-io/saas-controller/controllers/constants"
@@ -69,7 +68,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			Port: intstr.FromInt(int(l.Port())),
 		},
 	}
-	expose := v1.Container{
+	expose := &v1.Container{
 		ImagePullPolicy: v1.PullAlways,
 		Name:            constants.ContainerEngineName,
 		Image:           image,
@@ -107,7 +106,6 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	mergeProbe(l.AIDeployment.Spec.Deployment.ReadinessProbe, expose.ReadinessProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.LivenessProbe, expose.LivenessProbe)
 
-	pod.Containers = append(pod.Containers, expose)
 	pod.AutomountServiceAccountToken = &serviceAccount
 	pod.Volumes = append(pod.Volumes, v1.Volume{
 		Name: "models",
@@ -138,40 +136,16 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 				},
 			})
 		} else if len(m.ModelName) > 0 {
-			// TODO: support in-built model spec definitions
-			var models = map[string]string{
-				"llama-7b": "",
-			}
-			key := strings.ToLower(m.ModelName)
-			url, ok := models[key]
-			if ok {
-				pod.InitContainers = append(pod.InitContainers, v1.Container{
-					ImagePullPolicy: v1.PullAlways,
-					Name:            fmt.Sprintf("init-%s", key),
-					Image:           image,
-					Command:         []string{"sh", "-c"},
-					Args:            []string{"wget -O /models/$MODEL_NAME $MODEL_PATH"},
-					Env: []v1.EnvVar{
-						{Name: "MODEL_NAME", Value: key},
-						{Name: "MODEL_PATH", Value: url},
-					},
-					VolumeMounts: []v1.VolumeMount{
-						{
-							Name:      "models",
-							MountPath: "/models",
-						},
-					},
-				})
-			} else {
-				return nil, fmt.Errorf("")
-			}
+			// Pass models as args.
+			// LocalAI accepts both names and full URLs passed by as Args.
+			expose.Args = append(expose.Args, m.ModelName)
 		} else {
 			return nil, fmt.Errorf("")
 		}
 	}
 
+	pod.Containers = append(pod.Containers, *expose)
 	deploymentLabels := resources.GenDefaultLabels(l.AIDeployment.Name)
-
 	deployment.Spec.Template.Labels = utils.MergeMaps(
 		deploymentLabels,
 		deployment.Spec.Template.Labels,

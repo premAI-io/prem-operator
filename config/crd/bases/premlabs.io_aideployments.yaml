@@ -35,6 +35,11 @@ spec:
           spec:
             description: AIDeploymentSpec defines the desired state of AIDeployment
             properties:
+              args:
+                description: Optionally specify a list of args used to start the engine
+                items:
+                  type: string
+                type: array
               deployment:
                 properties:
                   accelerator:
@@ -7723,6 +7728,8 @@ spec:
                 - name
                 type: object
               env:
+                description: Optionally specify a list of environment variables used
+                  to start the engine
                 items:
                   description: EnvVar represents an environment variable present in
                     a Container.

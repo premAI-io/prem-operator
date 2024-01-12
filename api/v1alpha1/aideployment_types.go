@@ -30,8 +30,13 @@ type AIDeploymentSpec struct {
 	Endpoint []Endpoint `json:"endpoint,omitempty"`
 	Engine   AIEngine   `json:"engine,omitempty"`
 
+	// Optionally specify a list of environment variables used to start the engine
 	// +optional
 	Env []v1.EnvVar `json:"env,omitempty"`
+
+	// Optionally specify a list of args used to start the engine. It is preferred to not use this field but instead rely on the Engines settings and options. This is meant for overrides and development.
+	// +optional
+	Args []string `json:"args,omitempty"`
 
 	// +optional
 	Service Service `json:"service,omitempty"`

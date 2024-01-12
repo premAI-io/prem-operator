@@ -102,6 +102,11 @@ func (in *AIDeploymentSpec) DeepCopyInto(out *AIDeploymentSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.Args != nil {
+		in, out := &in.Args, &out.Args
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	in.Service.DeepCopyInto(&out.Service)
 	in.Deployment.DeepCopyInto(&out.Deployment)
 	in.Ingress.DeepCopyInto(&out.Ingress)

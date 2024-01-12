@@ -270,6 +270,47 @@ var _ = Describe("localai test", func() {
 		})
 	})
 
+	When("we set a model", func() {
+		BeforeEach(func() {
+			artifact = &api.AIDeployment{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "AIDeployment",
+					APIVersion: api.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "localai-",
+				},
+				Spec: api.AIDeploymentSpec{
+					Engine: api.AIEngine{
+						Name: "localai",
+					},
+					Endpoint: []api.Endpoint{{
+						Domain: "phi-2.127.0.0.1.nip.io",
+					}},
+					Models: []api.AIModel{
+						{
+							ModelName: "phi-2",
+						},
+					},
+				},
+			}
+		})
+
+		It("starts the API with the correct args", func() {
+			By("starting the workload")
+			Eventually(func(g Gomega) bool {
+				deploymentPod := &corev1.Pod{}
+				if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+					return false
+				}
+
+				c := deploymentPod.Spec.Containers[0]
+				g.Expect(c.Args).To(Equal([]string{"phi-2"}))
+				return true
+			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+		})
+	})
+
 	When("We specify a GPU", func() {
 		BeforeEach(func() {
 			artifact = &api.AIDeployment{
