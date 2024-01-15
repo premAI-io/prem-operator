@@ -36,7 +36,9 @@ spec:
             description: AIDeploymentSpec defines the desired state of AIDeployment
             properties:
               args:
-                description: Optionally specify a list of args used to start the engine
+                description: Optionally specify a list of args used to start the engine.
+                  It is preferred to not use this field but instead rely on the Engines
+                  settings and options. This is meant for overrides and development.
                 items:
                   type: string
                 type: array
@@ -7853,27 +7855,31 @@ spec:
               models:
                 items:
                   properties:
-                    custom:
+                    dataType:
+                      type: string
+                    modelMapRef:
                       properties:
-                        checksum:
-                          type: string
-                        format:
-                          type: string
                         name:
                           type: string
-                        url:
+                        namespace:
+                          type: string
+                        variant:
                           type: string
                       required:
-                      - format
                       - name
-                      - url
+                      - variant
                       type: object
-                    model_name:
-                      type: string
                     options:
                       additionalProperties:
                         type: string
                       type: object
+                    quantization:
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`
+                        Format           AIModelFormat       `json:\"format,omitempty\"`
+                        Framework        AIModelFramework    `json:\"framework,omitempty\"`"
+                      type: string
+                    uri:
+                      type: string
                   type: object
                 type: array
               service:

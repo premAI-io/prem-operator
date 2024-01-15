@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("localai test", func() {
@@ -81,10 +82,8 @@ var _ = Describe("localai test", func() {
 					}},
 					Models: []api.AIModel{
 						{
-							Custom: &api.AIModelCustom{
-								Format: "ggml",
-								Name:   "gpt-4",
-								Url:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
+							AIModelSpec: api.AIModelSpec{
+								Uri: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
 							},
 						},
 					},
@@ -125,6 +124,7 @@ var _ = Describe("localai test", func() {
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
 
+			By("waiting for the Pod to be running")
 			Eventually(func(g Gomega) bool {
 				deploymentPod := &corev1.Pod{}
 				if getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
@@ -134,6 +134,7 @@ var _ = Describe("localai test", func() {
 				return false
 			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(BeTrue())
 
+			By("waiting for the Pod to be marked as ready")
 			Eventually(func(g Gomega) bool {
 				deploymentPod := &corev1.Pod{}
 				if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
@@ -151,6 +152,7 @@ var _ = Describe("localai test", func() {
 				return false
 			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(BeTrue())
 
+			By("waiting for the Service and Ingress to be created")
 			Eventually(func(g Gomega) bool {
 				p := &corev1.Service{}
 				return getObjectWithAnnotation(svc, p, resources.DefaultAnnotation, artifactName)
@@ -161,6 +163,7 @@ var _ = Describe("localai test", func() {
 				return getObjectWithAnnotation(ingr, p, resources.DefaultAnnotation, artifactName)
 			}).WithTimeout(time.Minute).Should(BeTrue())
 
+			By("waiting for the API to respond")
 			Eventually(func(g Gomega) string {
 				url := "http://foo.127.0.0.1.nip.io:8080/v1/models"
 				req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
@@ -184,7 +187,7 @@ var _ = Describe("localai test", func() {
 					return ""
 				}
 				return string(body)
-			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(ContainSubstring("gpt-4"))
+			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(ContainSubstring(artifactName))
 		})
 	})
 
@@ -210,10 +213,8 @@ var _ = Describe("localai test", func() {
 					},
 					Models: []api.AIModel{
 						{
-							Custom: &api.AIModelCustom{
-								Format: "ggml",
-								Name:   "gpt-4",
-								Url:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
+							AIModelSpec: api.AIModelSpec{
+								Uri: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
 							},
 						},
 					},
@@ -289,7 +290,9 @@ var _ = Describe("localai test", func() {
 					}},
 					Models: []api.AIModel{
 						{
-							ModelName: "phi-2",
+							AIModelSpec: api.AIModelSpec{
+								Uri: "phi-2",
+							},
 						},
 					},
 				},
@@ -308,6 +311,88 @@ var _ = Describe("localai test", func() {
 				g.Expect(c.Args).To(Equal([]string{"phi-2"}))
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+		})
+	})
+
+	When("we reference a model CRD", func() {
+		var modelMap *api.AIModelMap
+		var c client.Client
+
+		BeforeEach(func() {
+			modelMap = &api.AIModelMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "AIModelMap",
+					APIVersion: api.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "localai-phi-2-",
+				},
+				Spec: api.AIModelMapSpec{
+					Localai: []api.AIModelVariant{
+						{
+							Name: "embedded",
+							AIModelSpec: api.AIModelSpec{
+								Uri: "phi-2",
+							},
+						},
+					},
+				},
+			}
+
+			scheme := runtime.NewScheme()
+			err := api.AddToScheme(scheme)
+			Expect(err).ToNot(HaveOccurred())
+			c, err = client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
+			Expect(err).ToNot(HaveOccurred())
+			c = client.NewNamespacedClient(c, "default")
+			err = c.Create(context.Background(), modelMap)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(modelMap.Name).ToNot(BeEmpty())
+
+			artifact = &api.AIDeployment{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "AIDeployment",
+					APIVersion: api.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "localai-",
+				},
+				Spec: api.AIDeploymentSpec{
+					Engine: api.AIEngine{
+						Name: "localai",
+					},
+					Endpoint: []api.Endpoint{{
+						Domain: "foo.127.0.0.1.nip.io",
+					}},
+					Models: []api.AIModel{
+						{
+							ModelMapRef: &api.AIModelMapReference{
+								Name:    modelMap.Name,
+								Variant: "embedded",
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("starts the API with the correct args", func() {
+			By("starting the workload")
+			Eventually(func(g Gomega) bool {
+				deploymentPod := &corev1.Pod{}
+				if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+					return false
+				}
+
+				c := deploymentPod.Spec.Containers[0]
+				g.Expect(c.Args).To(Equal([]string{"phi-2"}))
+				return true
+			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+		})
+
+		AfterEach(func() {
+			err := c.Delete(context.Background(), modelMap)
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 
@@ -331,10 +416,8 @@ var _ = Describe("localai test", func() {
 					},
 					Models: []api.AIModel{
 						{
-							Custom: &api.AIModelCustom{
-								Format: "ggml",
-								Name:   "gpt-4",
-								Url:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
+							AIModelSpec: api.AIModelSpec{
+								Uri: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q5_1.bin?download=true",
 							},
 						},
 					},

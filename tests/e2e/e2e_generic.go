@@ -28,10 +28,6 @@ var _ = Describe("generic test", func() {
 	var artifact *api.AIDeployment
 	var startTime time.Time
 
-	model := []api.AIModel{{
-		ModelName: "buns",
-	}}
-
 	JustBeforeEach(func() {
 		startTime = time.Now()
 		k8s := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())
@@ -94,7 +90,6 @@ var _ = Describe("generic test", func() {
 							},
 						},
 					},
-					Models: model,
 				},
 			}
 		})
@@ -146,7 +141,6 @@ var _ = Describe("generic test", func() {
 							Port:   8000,
 						},
 						},
-						Models: model,
 						Deployment: api.Deployment{
 							Accelerator: &api.Accelerator{
 								Interface: api.AcceleratorInterfaceCUDA,

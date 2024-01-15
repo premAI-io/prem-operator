@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -29,6 +28,7 @@ import (
 
 	"github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
+	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
 	"github.com/premAI-io/saas-controller/controllers/engines"
 )
 
@@ -71,15 +71,21 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		mlEngine aideployment.MLEngine
 		err      error
 	)
-	switch strings.ToLower(ent.Spec.Engine.Name) {
-	case engines.LocalAIEngine:
-		mlEngine = engines.NewLocalAI(&ent)
-	case engines.VllmAiEngine:
-		mlEngine, err = engines.NewVllmAi(&ent)
+
+	models, err := aimodelmap.Resolve(&ent, ctx, r.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	switch ent.Spec.Engine.Name {
+	case v1alpha1.AIEngineNameLocalai:
+		mlEngine = engines.NewLocalAI(&ent, models)
+	case v1alpha1.AIEngineNameVLLM:
+		mlEngine, err = engines.NewVllmAi(&ent, models)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-	case engines.GenericEngine:
+	case v1alpha1.AIEngineNameGeneric:
 		mlEngine = engines.NewGeneric(&ent)
 	}
 

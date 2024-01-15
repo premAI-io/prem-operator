@@ -14,17 +14,14 @@ spec:
   engine:
     name: "vllm"
   models:
-    - custom:
-        name: "vllm-engine"
-        url: "mistralai/Mistral-7B-v0.1"
-        format: "gguf"
+    - uri: "mistralai/Mistral-7B-v0.1"
   deployment:
     accelerator:
       interface: "CUDA"
       minVersion:
         major: 7
     resources:
-      requests:
+      limits:
         cpu: "1"
         memory: "16Gi"
-        nvidia.com/gpu: "2"
+

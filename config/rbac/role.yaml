@@ -78,6 +78,32 @@ rules:
 - apiGroups:
   - premlabs.io
   resources:
+  - aimodelmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - premlabs.io
+  resources:
+  - aimodelmaps/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - premlabs.io
+  resources:
+  - aimodelmaps/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - premlabs.io
+  resources:
   - autonodelabelers
   verbs:
   - create

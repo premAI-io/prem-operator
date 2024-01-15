@@ -2,4 +2,5 @@
 resources:
 - premlabs_v1alpha1_aideployment.yaml
 - premlabs_v1alpha1_autonodelabeler.yaml
+- premlabs_v1alpha1_aimodelmap.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

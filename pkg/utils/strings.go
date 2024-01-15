@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"unicode"
 )
 
@@ -11,4 +12,11 @@ func IsAlphanumeric(str string) bool {
 		}
 	}
 	return true
+}
+
+func ToHostName(name string) string {
+	s := strings.ReplaceAll(name, "_", "-")
+	s = strings.ReplaceAll(s, ".", "-")
+
+	return strings.ToLower(s)
 }

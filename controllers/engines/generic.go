@@ -31,8 +31,6 @@ func (l *Generic) Port() int32 {
 	}
 }
 
-const GenericEngine = "generic"
-
 func (l *Generic) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	objMeta := metav1.ObjectMeta{
 		Name:            l.AIDeployment.Name,

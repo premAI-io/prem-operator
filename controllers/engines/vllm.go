@@ -5,6 +5,7 @@ import (
 
 	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
+	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
 	"github.com/premAI-io/saas-controller/controllers/constants"
 	"github.com/premAI-io/saas-controller/controllers/resources"
 	"github.com/premAI-io/saas-controller/pkg/utils"
@@ -16,7 +17,6 @@ import (
 )
 
 const (
-	VllmAiEngine            = "vllm"
 	vllmContainerVolumePath = "/root/.cache/huggingface"
 )
 
@@ -32,8 +32,6 @@ var (
 type vllmAi struct {
 	// image of the vllm engine
 	engineImage string
-	// name of the vllm llm model to use
-	llmName string
 	// environment variables to pass to the vllm engine
 	engineEnvVars []v1.EnvVar
 
@@ -44,18 +42,19 @@ type vllmAi struct {
 
 	// used to customize the deployment
 	deploymentOptions *a1.AIDeployment
+	model             aimodelmap.ResolvedModel
 }
 
-func NewVllmAi(ai *a1.AIDeployment) (aideployment.MLEngine, error) {
-	if len(ai.Spec.Models) == 0 {
+func NewVllmAi(ai *a1.AIDeployment, models []aimodelmap.ResolvedModel) (aideployment.MLEngine, error) {
+	if len(models) == 0 {
 		return nil, ErrModelsNotSpecified
 	}
 
-	if len(ai.Spec.Models) > 1 {
+	if len(models) > 1 {
 		return nil, ErrorOnlyOneModel
 	}
 
-	model := ai.Spec.Models[0]
+	model := models[0]
 	imageTag := "latest"
 	imageRepo := constants.ImageRepositoryVllm
 	if ai.Spec.Engine.Options[constants.ImageTagKey] != "" {
@@ -68,12 +67,12 @@ func NewVllmAi(ai *a1.AIDeployment) (aideployment.MLEngine, error) {
 
 	return &vllmAi{
 		engineImage: engineImage,
-		llmName:     model.Custom.Url,
 
 		resourceName:      ai.Name,
 		namespace:         ai.Namespace,
 		engineEnvVars:     ai.Spec.Env,
 		deploymentOptions: ai,
+		model:             model,
 	}, nil
 }
 
@@ -82,7 +81,7 @@ func (v *vllmAi) Port() int32 {
 }
 
 func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
-	log.Info("Creating deployment for vllm engine, model: ", v.llmName)
+	log.Info("Creating deployment for vllm engine, model: ", v.model.Name)
 	healthProbeHandler := v1.ProbeHandler{
 		HTTPGet: &v1.HTTPGetAction{
 			Path: "/health",
@@ -102,7 +101,7 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			},
 		},
 		Args: []string{
-			"--model", v.llmName,
+			"--model", v.model.Spec.Uri,
 		},
 		StartupProbe: &v1.Probe{
 			InitialDelaySeconds: 3,
@@ -120,6 +119,14 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			FailureThreshold: 10,
 			ProbeHandler:     healthProbeHandler,
 		},
+	}
+
+	engineOpts := v.deploymentOptions.Spec.Engine.Options
+	if v.model.Spec.DataType != "" {
+		engineOpts[constants.DtypeKey] = string(v.model.Spec.DataType)
+	}
+	if v.model.Spec.Quantization != "" {
+		engineOpts[constants.QuantizationKey] = string(v.model.Spec.Quantization)
 	}
 
 	if dtype, ok := v.deploymentOptions.Spec.Engine.Options[constants.DtypeKey]; ok {

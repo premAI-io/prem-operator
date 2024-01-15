@@ -136,30 +136,28 @@ type Endpoint struct {
 	Port int32 `json:"port,omitempty"`
 }
 
+// +enum
+type AIEngineName string
+
+const (
+	AIEngineNameLocalai AIEngineName = "localai"
+	AIEngineNameVLLM    AIEngineName = "vllm"
+	AIEngineNameGeneric AIEngineName = "generic"
+)
+
 type AIEngine struct {
-	Name string `json:"name"`
+	Name AIEngineName `json:"name"`
 	// +optional
 	Options map[string]string `json:"options,omitempty"`
 }
 
 type AIModel struct {
 	// +optional
-	Custom *AIModelCustom `json:"custom,omitempty"`
-	// +optional
-	ModelName string `json:"model_name,omitempty"`
+	ModelMapRef *AIModelMapReference `json:"modelMapRef,omitempty"`
+	AIModelSpec `json:",inline"`
 	// +optional
 	Options map[string]string `json:"options,omitempty"`
 }
-
-// +enum
-type AIModelFormat string
-
-const (
-	AIModelFormatGguf       AIModelFormat = "gguf"
-	AIModelFormatCtranslate AIModelFormat = "ctranslate"
-	AIModelFormatPickle     AIModelFormat = "pickle"
-	AIModelFormatSafeTensor AIModelFormat = "safetensor"
-)
 
 type AIModelCustom struct {
 	Format AIModelFormat `json:"format"`

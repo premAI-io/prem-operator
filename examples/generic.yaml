@@ -26,8 +26,6 @@ spec:
   endpoint:
     - domain: "foo.127.0.0.1.nip.io"
       port: 8080
-  models:
-    - model_name: "generic-test"
   deployment:
     template:
       spec:
@@ -65,10 +63,6 @@ spec:
           - name: api-script
             configMap:
               name: api-script
-    resources:
-      requests:
-        cpu: "0.1"
-        memory: "1Mi"
   env:
     - name: "MODEL_ALIAS"
       value: "GPT-4"

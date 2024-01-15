@@ -2,8 +2,10 @@ package engines
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/premAI-io/saas-controller/controllers/aideployment"
+	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
 	"github.com/premAI-io/saas-controller/controllers/constants"
 	"github.com/premAI-io/saas-controller/pkg/utils"
 
@@ -17,17 +19,16 @@ import (
 
 type LocalAI struct {
 	AIDeployment *a1.AIDeployment
+	Models       []aimodelmap.ResolvedModel
 }
 
-func NewLocalAI(ai *a1.AIDeployment) aideployment.MLEngine {
-	return &LocalAI{AIDeployment: ai}
+func NewLocalAI(ai *a1.AIDeployment, m []aimodelmap.ResolvedModel) aideployment.MLEngine {
+	return &LocalAI{AIDeployment: ai, Models: m}
 
 }
 func (l *LocalAI) Port() int32 {
 	return 8080
 }
-
-const LocalAIEngine = "localai"
 
 func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	objMeta := metav1.ObjectMeta{
@@ -116,17 +117,17 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 
 	// TODO: mount a configmap
 
-	for _, m := range l.AIDeployment.Spec.Models {
-		if m.Custom != nil {
+	for _, m := range l.Models {
+		if strings.HasPrefix(m.Spec.Uri, "http") {
 			pod.InitContainers = append(pod.InitContainers, v1.Container{
 				ImagePullPolicy: v1.PullAlways,
-				Name:            fmt.Sprintf("init-%s", m.Custom.Name),
+				Name:            fmt.Sprintf("init-%s", m.Name),
 				Image:           image,
 				Command:         []string{"sh", "-c"},
 				Args:            []string{"wget -O /models/$MODEL_NAME $MODEL_PATH"},
 				Env: []v1.EnvVar{
-					{Name: "MODEL_NAME", Value: m.Custom.Name},
-					{Name: "MODEL_PATH", Value: m.Custom.Url},
+					{Name: "MODEL_NAME", Value: m.Name},
+					{Name: "MODEL_PATH", Value: m.Spec.Uri},
 				},
 				VolumeMounts: []v1.VolumeMount{
 					{
@@ -135,12 +136,10 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 					},
 				},
 			})
-		} else if len(m.ModelName) > 0 {
+		} else {
 			// Pass models as args.
 			// LocalAI accepts both names and full URLs passed by as Args.
-			expose.Args = append(expose.Args, m.ModelName)
-		} else {
-			return nil, fmt.Errorf("")
+			expose.Args = append(expose.Args, m.Spec.Uri)
 		}
 	}
 

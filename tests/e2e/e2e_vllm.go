@@ -29,10 +29,8 @@ var _ = Describe("vllm test", func() {
 	var startTime time.Time
 
 	custModel := []api.AIModel{{
-		Custom: &api.AIModelCustom{
-			Format: "pickle",
-			Name:   "phi-1-5",
-			Url:    "https://huggingface.co/microsoft/phi-1_5/resolve/main/pytorch_model.bin?download=true",
+		AIModelSpec: api.AIModelSpec{
+			Uri: "https://huggingface.co/microsoft/phi-1_5/resolve/main/pytorch_model.bin?download=true",
 		},
 	}}
 
@@ -270,10 +268,10 @@ var _ = Describe("vllm test", func() {
 							Domain: "foo.127.0.0.1.nip.io",
 						}},
 						Models: []api.AIModel{{
-							Custom: &api.AIModelCustom{
-								Format: api.AIModelFormatSafeTensor,
-								Name:   "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ",
-								Url:    "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ",
+							AIModelSpec: api.AIModelSpec{
+								Uri:          "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ",
+								Quantization: api.AIModelQuantizationAWQ,
+								DataType:     api.AIModelDataTypeFloat16,
 							},
 						}},
 						Deployment: api.Deployment{
