@@ -62,7 +62,11 @@ func (l *Generic) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	if len(expose.Ports) > 0 {
 		return nil, fmt.Errorf("Generic AI deployment %s:%s: Specify ports in AIDeployment.Spec.Endpoint not the container", objMeta.Namespace, objMeta.Name)
 	}
-	expose.Ports = []v1.ContainerPort{{ContainerPort: l.AIDeployment.Spec.Endpoint[0].Port}}
+
+	expose.Ports = make([]v1.ContainerPort, 0, 1)
+	for _, ep := range l.AIDeployment.Spec.Endpoint {
+		expose.Ports = append(expose.Ports, v1.ContainerPort{ContainerPort: ep.Port})
+	}
 
 	mergeProbe(l.AIDeployment.Spec.Deployment.StartupProbe, expose.StartupProbe)
 	mergeProbe(l.AIDeployment.Spec.Deployment.ReadinessProbe, expose.ReadinessProbe)
