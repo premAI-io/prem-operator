@@ -296,11 +296,11 @@ var _ = Describe("vllm test", func() {
 
 					c := deployment.Spec.Template.Spec.Containers[0]
 					g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
-					g.Expect(c.Args).To(ContainElement("--dtype=float16"))
-					g.Expect(c.Args).To(ContainElement("--quantization=awq"))
+					g.Expect(c.Args).To(ContainElements("--dtype", "float16"))
+					g.Expect(c.Args).To(ContainElements("--quantization", "awq"))
 
 					return true
-				})
+				}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
 			})
 		})
 	})
