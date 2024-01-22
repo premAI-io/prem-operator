@@ -121,13 +121,14 @@ func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	}
 
-	engineOpts := v.deploymentOptions.Spec.Engine.Options
+	engineOpts := make(map[string]string)
 	if v.model.Spec.DataType != "" {
 		engineOpts[constants.DtypeKey] = string(v.model.Spec.DataType)
 	}
 	if v.model.Spec.Quantization != "" {
 		engineOpts[constants.QuantizationKey] = string(v.model.Spec.Quantization)
 	}
+	v.deploymentOptions.Spec.Engine.Options = utils.MergeMaps(engineOpts, v.deploymentOptions.Spec.Engine.Options)
 
 	if dtype, ok := v.deploymentOptions.Spec.Engine.Options[constants.DtypeKey]; ok {
 		if utils.IsAlphanumeric(dtype) {
