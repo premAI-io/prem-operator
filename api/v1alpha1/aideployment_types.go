@@ -140,9 +140,10 @@ type Endpoint struct {
 type AIEngineName string
 
 const (
-	AIEngineNameLocalai AIEngineName = "localai"
-	AIEngineNameVLLM    AIEngineName = "vllm"
-	AIEngineNameGeneric AIEngineName = "generic"
+	AIEngineNameLocalai      AIEngineName = "localai"
+	AIEngineNameVLLM         AIEngineName = "vllm"
+	AIEngineNameGeneric      AIEngineName = "generic"
+	AIEngineNameDeepSpeedMii AIEngineName = "deepspeed-mii"
 )
 
 type AIEngine struct {

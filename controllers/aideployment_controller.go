@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -88,6 +89,13 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	case v1alpha1.AIEngineNameGeneric:
 		mlEngine = engines.NewGeneric(&ent)
+	case v1alpha1.AIEngineNameDeepSpeedMii:
+		mlEngine, err = engines.NewDeepSpeedMii(&ent, models)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	default:
+		return ctrl.Result{}, fmt.Errorf("unknown engine %s", ent.Spec.Engine.Name)
 	}
 
 	requeue, err := aideployment.Reconcile(ent, ctx, r.Client, mlEngine)
