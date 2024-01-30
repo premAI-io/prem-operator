@@ -35,6 +35,25 @@ spec:
           spec:
             description: AIModelMapSpec defines the desired state of AIModelMap
             properties:
+              deepspeed-mii:
+                items:
+                  properties:
+                    dataType:
+                      type: string
+                    name:
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      type: string
+                    quantization:
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`
+                        Format           AIModelFormat       `json:\"format,omitempty\"`
+                        Framework        AIModelFramework    `json:\"framework,omitempty\"`"
+                      type: string
+                    uri:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               localai:
                 items:
                   properties:

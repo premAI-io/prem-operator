@@ -116,8 +116,9 @@ type AIModelVariant struct {
 
 // AIModelMapSpec defines the desired state of AIModelMap
 type AIModelMapSpec struct {
-	Localai []AIModelVariant `json:"localai,omitempty"`
-	Vllm    []AIModelVariant `json:"vllm,omitempty"`
+	Localai      []AIModelVariant `json:"localai,omitempty"`
+	Vllm         []AIModelVariant `json:"vllm,omitempty"`
+	DeepSpeedMii []AIModelVariant `json:"deepspeed-mii,omitempty"`
 }
 
 // AIModelMapStatus defines the observed state of AIModelMap

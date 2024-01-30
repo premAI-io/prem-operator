@@ -97,6 +97,8 @@ func resolveOne(m *a1.AIModel, d *a1.AIDeployment, ctx context.Context, c ctrlCl
 		variants = mm.Spec.Localai
 	case a1.AIEngineNameVLLM:
 		variants = mm.Spec.Vllm
+	case a1.AIEngineNameDeepSpeedMii:
+		variants = mm.Spec.DeepSpeedMii
 	case a1.AIEngineNameGeneric:
 		return nil, fmt.Errorf("deployment %s/%s: Can't specify a model with generic engine", d.Namespace, d.Name)
 	default:
