@@ -316,38 +316,9 @@ var _ = Describe("localai test", func() {
 
 	When("we reference a model CRD", func() {
 		var modelMap *api.AIModelMap
-		var c client.Client
 
 		BeforeEach(func() {
-			modelMap = &api.AIModelMap{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "AIModelMap",
-					APIVersion: api.GroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "localai-phi-2-",
-				},
-				Spec: api.AIModelMapSpec{
-					Localai: []api.AIModelVariant{
-						{
-							Name: "embedded",
-							AIModelSpec: api.AIModelSpec{
-								Uri: "phi-2",
-							},
-						},
-					},
-				},
-			}
-
-			scheme := runtime.NewScheme()
-			err := api.AddToScheme(scheme)
-			Expect(err).ToNot(HaveOccurred())
-			c, err = client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
-			Expect(err).ToNot(HaveOccurred())
-			c = client.NewNamespacedClient(c, "default")
-			err = c.Create(context.Background(), modelMap)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(modelMap.Name).ToNot(BeEmpty())
+			modelMap = createModelMapSingleEntry("localai", "embedded", "phi-2")
 
 			artifact = &api.AIDeployment{
 				TypeMeta: metav1.TypeMeta{
@@ -368,7 +339,7 @@ var _ = Describe("localai test", func() {
 						{
 							ModelMapRef: &api.AIModelMapReference{
 								Name:    modelMap.Name,
-								Variant: "embedded",
+								Variant: modelMap.Spec.Localai[0].Name,
 							},
 						},
 					},
@@ -391,7 +362,9 @@ var _ = Describe("localai test", func() {
 		})
 
 		AfterEach(func() {
-			err := c.Delete(context.Background(), modelMap)
+			c, err := client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
+			Expect(err).ToNot(HaveOccurred())
+			err = c.Delete(context.Background(), modelMap)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})

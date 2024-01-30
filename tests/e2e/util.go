@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	api "github.com/premAI-io/saas-controller/api/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +17,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func getObjectWithLabel(resource dynamic.ResourceInterface, obj metav1.Object, labelName string, labelValue string) bool {
@@ -114,4 +116,46 @@ func checkLogs(startTime time.Time) {
 		lines++
 	}
 	Expect(lines).To(BeNumerically(">", 0))
+}
+
+func createModelMapSingleEntry(name string, variantName string, uri string) *api.AIModelMap {
+	modelMap := &api.AIModelMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "AIModelMap",
+			APIVersion: api.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: name + "-",
+		},
+	}
+
+	variants := []api.AIModelVariant{
+		{
+			Name: variantName,
+			AIModelSpec: api.AIModelSpec{
+				Uri: uri,
+			},
+		},
+	}
+
+	switch name {
+	case "localai":
+		modelMap.Spec.Localai = variants
+	case "vllm":
+		modelMap.Spec.Vllm = variants
+	case "deepspeed-mii":
+		modelMap.Spec.DeepSpeedMii = variants
+	}
+
+	scheme := runtime.NewScheme()
+	err := api.AddToScheme(scheme)
+	Expect(err).ToNot(HaveOccurred())
+	c, err := client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
+	Expect(err).ToNot(HaveOccurred())
+	c = client.NewNamespacedClient(c, "default")
+	err = c.Create(context.Background(), modelMap)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(modelMap.Name).ToNot(BeEmpty())
+
+	return modelMap
 }

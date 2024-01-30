@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("deepspeed test", func() {
@@ -246,6 +247,61 @@ var _ = Describe("deepspeed test", func() {
 
 					return true
 				}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+			})
+		})
+
+		When("we reference a model CRD", func() {
+			var modelMap *api.AIModelMap
+
+			BeforeEach(func() {
+				modelMap = createModelMapSingleEntry("deepspeed-mii", "original", "microsoft/phi-2")
+
+				artifact = &api.AIDeployment{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "AIDeployment",
+						APIVersion: api.GroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						GenerateName: string(api.AIEngineNameDeepSpeedMii) + "-",
+					},
+					Spec: api.AIDeploymentSpec{
+						Engine: api.AIEngine{
+							Name: api.AIEngineNameDeepSpeedMii,
+						},
+						Endpoint: []api.Endpoint{{
+							Domain: "foo.127.0.0.1.nip.io",
+						}},
+						Models: []api.AIModel{
+							{
+								ModelMapRef: &api.AIModelMapReference{
+									Name:    modelMap.Name,
+									Variant: "original",
+								},
+							},
+						},
+					},
+				}
+			})
+
+			It("starts the API with the correct args", func() {
+				By("starting the workload")
+				Eventually(func(g Gomega) bool {
+					deploymentPod := &corev1.Pod{}
+					if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+						return false
+					}
+
+					c := deploymentPod.Spec.Containers[0]
+					g.Expect(c.Args).To(Equal([]string{"--uri", "microsoft/phi-2"}))
+					return true
+				}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+			})
+
+			AfterEach(func() {
+				c, err := client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
+				Expect(err).ToNot(HaveOccurred())
+				err = c.Delete(context.Background(), modelMap)
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})
