@@ -81,7 +81,7 @@ func (v *vllmAi) Port() int32 {
 }
 
 func (v *vllmAi) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
-	log.Info("Creating deployment for vllm engine, model: ", v.model.Name)
+	log.Debug("Creating deployment for vllm engine, model: ", v.model.Name)
 	healthProbeHandler := v1.ProbeHandler{
 		HTTPGet: &v1.HTTPGetAction{
 			Path: "/health",
