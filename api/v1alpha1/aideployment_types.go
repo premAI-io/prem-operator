@@ -160,15 +160,6 @@ type AIModel struct {
 	Options map[string]string `json:"options,omitempty"`
 }
 
-type AIModelCustom struct {
-	Format AIModelFormat `json:"format"`
-	Name   string        `json:"name"`
-	Url    string        `json:"url"`
-
-	// +optional
-	Checksum string `json:"checksum,omitempty"`
-}
-
 // AIDeploymentStatus defines the observed state of AIDeployment
 type AIDeploymentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
