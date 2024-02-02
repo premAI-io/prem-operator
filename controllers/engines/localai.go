@@ -61,6 +61,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	v := l.AIDeployment.Spec.Env
 
 	v = append(v, v1.EnvVar{Name: "MODELS_PATH", Value: "/models"})
+	v = append(v, v1.EnvVar{Name: "TRANSFORMERS_CACHE", Value: "/models"})
 	image := fmt.Sprintf("%s:%s", imageRepository, imageTag)
 
 	healthProbeHandler := v1.ProbeHandler{
@@ -108,6 +109,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	mergeProbe(l.AIDeployment.Spec.Deployment.LivenessProbe, expose.LivenessProbe)
 
 	pod.AutomountServiceAccountToken = &serviceAccount
+
 	pod.Volumes = append(pod.Volumes, v1.Volume{
 		Name: "models",
 		VolumeSource: v1.VolumeSource{
@@ -115,13 +117,44 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 		},
 	})
 
-	// TODO: mount a configmap
+	if l.AIDeployment.Spec.Engine.Options[constants.ModelsConfigMapKey] != "" {
+		pod.Volumes = append(pod.Volumes, v1.Volume{
+			Name: "configs",
+			VolumeSource: v1.VolumeSource{
+				ConfigMap: &v1.ConfigMapVolumeSource{
+					LocalObjectReference: v1.LocalObjectReference{
+						Name: l.AIDeployment.Spec.Engine.Options[constants.ModelsConfigMapKey],
+					},
+				},
+			},
+		})
+
+		if l.AIDeployment.Spec.Engine.Options[constants.ModelsConfigMapKey] != "" {
+			pod.InitContainers = append(pod.InitContainers, v1.Container{
+				ImagePullPolicy: v1.PullAlways,
+				Name:            fmt.Sprintf("init-configs-%s", l.AIDeployment.Name),
+				Image:           image,
+				Command:         []string{"sh", "-c"},
+				Args:            []string{"cp -v /configs/* /models"},
+				VolumeMounts: []v1.VolumeMount{
+					{
+						Name:      "configs",
+						MountPath: "/configs",
+					},
+					{
+						Name:      "models",
+						MountPath: "/models",
+					},
+				},
+			})
+		}
+	}
 
 	for _, m := range l.Models {
 		if strings.HasPrefix(m.Spec.Uri, "http") {
 			pod.InitContainers = append(pod.InitContainers, v1.Container{
 				ImagePullPolicy: v1.PullAlways,
-				Name:            fmt.Sprintf("init-%s", m.Name),
+				Name:            fmt.Sprintf("init-models-%s", l.AIDeployment.Name),
 				Image:           image,
 				Command:         []string{"sh", "-c"},
 				Args:            []string{"wget -O /models/$MODEL_NAME $MODEL_PATH"},

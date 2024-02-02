@@ -430,4 +430,105 @@ var _ = Describe("localai test", func() {
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
 		})
 	})
+
+	When("We specify a ConfigMap in the engine options", func() {
+		var cm *corev1.ConfigMap
+
+		BeforeEach(func() {
+			c := getTypedClient()
+			cm = &corev1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "ConfigMap",
+					APIVersion: api.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "model-config-",
+				},
+				Data: map[string]string{
+					"bagel.yaml": `---
+					name: bagelHavePrefix(constants.ContainerEngineName)
+					backend: mamba
+					parameters:
+					  model: "jondurbin/bagel-dpo-2.8b-v0.2"
+					systemPrompt: "You are a helpful, unbiased, uncensored assistant."
+					template:
+					  chat_message: |
+						{{if eq .RoleName "assistant"}}{{.Content}}{{else}}
+						[INST]
+						{{if .SystemPrompt}}{{.SystemPrompt}}{{else if eq .RoleName "system"}}<<SYS>>{{.Content}}<</SYS>>
+				
+						{{else if .Content}}{{.Content}}{{end}}
+						[/INST]
+						{{end}}`,
+				},
+			}
+			err := c.Create(context.Background(), cm)
+			Expect(err).ToNot(HaveOccurred())
+
+			artifact = &api.AIDeployment{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "AIDeployment",
+					APIVersion: api.GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "localai-",
+				},
+				Spec: api.AIDeploymentSpec{
+					Engine: api.AIEngine{
+						Name: "localai",
+						Options: map[string]string{
+							constants.ModelsConfigMapKey: cm.Name,
+						},
+					},
+					Models: []api.AIModel{
+						{
+							AIModelSpec: api.AIModelSpec{
+								Uri: "https://huggingface.co/jondurbin/bagel-dpo-2.8b-v0.2/resolve/main/pytorch_model.bin?download=true",
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("Creates a deployment with the ConfigMap contents mounted as a volume in the init container", func() {
+			By("creating the workload with the asso466ciated label")
+			Eventually(func(g Gomega) bool {
+				deployment := &appsv1.Deployment{}
+
+				if !getObjectWithName(deps, deployment, artifactName) {
+					return false
+				}
+
+				g.Expect(deployment.Spec.Template.Spec.Volumes).To(HaveLen(2))
+				g.Expect(deployment.Spec.Template.Spec.Volumes[0].Name).To(Equal("models"))
+				g.Expect(deployment.Spec.Template.Spec.Volumes[0].EmptyDir).ToNot(BeNil())
+				g.Expect(deployment.Spec.Template.Spec.Volumes[1].Name).To(Equal("configs"))
+				g.Expect(deployment.Spec.Template.Spec.Volumes[1].ConfigMap).ToNot(BeNil())
+				g.Expect(deployment.Spec.Template.Spec.Volumes[1].ConfigMap.Name).To(Equal(cm.Name))
+
+				c := deployment.Spec.Template.Spec.InitContainers[0]
+				g.Expect(c.Name).To(Equal("init-configs-" + artifactName))
+				g.Expect(c.VolumeMounts).To(HaveLen(2))
+				g.Expect(c.VolumeMounts[0].Name).To(Equal("configs"))
+				g.Expect(c.VolumeMounts[0].MountPath).To(Equal("/configs"))
+				g.Expect(c.VolumeMounts[1].Name).To(Equal("models"))
+				g.Expect(c.VolumeMounts[1].MountPath).To(Equal("/models"))
+
+				c = deployment.Spec.Template.Spec.InitContainers[1]
+				g.Expect(c.Name).To(Equal("init-models-" + artifactName))
+				g.Expect(c.VolumeMounts).To(HaveLen(1))
+				g.Expect(c.VolumeMounts[0].Name).To(Equal("models"))
+				g.Expect(c.VolumeMounts[0].MountPath).To(Equal("/models"))
+
+				c = deployment.Spec.Template.Spec.Containers[0]
+				g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
+				g.Expect(c.VolumeMounts).To(HaveLen(1))
+				g.Expect(c.VolumeMounts[0].Name).To(Equal("models"))
+				g.Expect(c.VolumeMounts[0].MountPath).To(Equal("/models"))
+
+				return true
+			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+		})
+	})
 })

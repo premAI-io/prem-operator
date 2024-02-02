@@ -118,6 +118,17 @@ func checkLogs(startTime time.Time) {
 	Expect(lines).To(BeNumerically(">", 0))
 }
 
+func getTypedClient() client.Client {
+	scheme := runtime.NewScheme()
+	err := api.AddToScheme(scheme)
+	Expect(err).ToNot(HaveOccurred())
+	err = corev1.AddToScheme(scheme)
+	Expect(err).ToNot(HaveOccurred())
+	c, err := client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
+	Expect(err).ToNot(HaveOccurred())
+	return client.NewNamespacedClient(c, "default")
+}
+
 func createModelMapSingleEntry(name string, variantName string, uri string) *api.AIModelMap {
 	modelMap := &api.AIModelMap{
 		TypeMeta: metav1.TypeMeta{
@@ -147,13 +158,8 @@ func createModelMapSingleEntry(name string, variantName string, uri string) *api
 		modelMap.Spec.DeepSpeedMii = variants
 	}
 
-	scheme := runtime.NewScheme()
-	err := api.AddToScheme(scheme)
-	Expect(err).ToNot(HaveOccurred())
-	c, err := client.New(ctrl.GetConfigOrDie(), client.Options{Scheme: scheme})
-	Expect(err).ToNot(HaveOccurred())
-	c = client.NewNamespacedClient(c, "default")
-	err = c.Create(context.Background(), modelMap)
+	c := getTypedClient()
+	err := c.Create(context.Background(), modelMap)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(modelMap.Name).ToNot(BeEmpty())
 
