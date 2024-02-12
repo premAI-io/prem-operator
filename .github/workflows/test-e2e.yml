@@ -19,7 +19,8 @@ jobs:
          sudo apt-get install -y curl make
       - uses: actions/setup-go@v4
         with:
-          go-version: '>=1.17.0'
+          # TODO: update this once we don't have issues with tests anymore with newer Go versions
+          go-version: '~1.21.3'
       - run: go version
       - name: Checkout
         uses: actions/checkout@v2

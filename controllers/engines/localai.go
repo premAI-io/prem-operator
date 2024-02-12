@@ -157,7 +157,7 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 				Name:            fmt.Sprintf("init-models-%s", l.AIDeployment.Name),
 				Image:           image,
 				Command:         []string{"sh", "-c"},
-				Args:            []string{"wget -O /models/$MODEL_NAME $MODEL_PATH"},
+				Args:            []string{"curl -L -v -o /models/$MODEL_NAME $MODEL_PATH"},
 				Env: []v1.EnvVar{
 					{Name: "MODEL_NAME", Value: m.Name},
 					{Name: "MODEL_PATH", Value: m.Spec.Uri},
