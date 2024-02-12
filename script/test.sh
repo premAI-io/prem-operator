@@ -48,6 +48,51 @@ ports:
     nodePort: 32080
   websecure:
     nodePort: 32443
+
+experimental:
+  plugins:
+    traefik-api-key-auth:
+      moduleName: github.com/Septima/traefik-api-key-auth
+      version: v0.2.3
+EOF
+cat << EOF > traefik-middlwares.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: api-gateway 
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: auth-service
+  namespace: api-gateway
+spec:
+  plugin:
+    traefik-api-key-auth:
+      authenticationHeader: false
+      bearerHeader: true
+      bearerHeaderName: Authorization
+      queryParam: false
+      pathSegment: false
+      # Incase LocalAI also has bearer configured
+      removeHeadersOnSuccess: false
+      internalForwardHeaderName: ""
+      internalErrorRoute: ""
+      keys:
+        - notsecr3t
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limiter
+  namespace: api-gateway
+spec:
+  rateLimit:
+    average: 2
+    burst: 8
+    sourceCriterion:
+      requestHeaderName: Authorization
 EOF
     kind create cluster --name $CLUSTER_NAME --config kind.config
     rm -rf kind.config
@@ -55,6 +100,8 @@ EOF
     helm repo update
     helm install traefik traefik/traefik --values traefik-values.yaml
     rm -rf traefik-values.yaml
+    kubectl apply -f traefik-middlwares.yaml
+    rm -rf traefik-middlwares.yaml
 fi
 
 # IF CREATE_ONLY exits here

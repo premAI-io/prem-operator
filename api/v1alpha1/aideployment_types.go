@@ -30,6 +30,9 @@ type AIDeploymentSpec struct {
 	Endpoint []Endpoint `json:"endpoint,omitempty"`
 	Engine   AIEngine   `json:"engine,omitempty"`
 
+	RateLimit      bool `json:"ratelimit,omitempty"`
+	Authentication bool `json:"auth,omitempty"`
+
 	// Optionally specify a list of environment variables used to start the engine
 	// +optional
 	Env []v1.EnvVar `json:"env,omitempty"`

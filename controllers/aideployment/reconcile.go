@@ -142,12 +142,14 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		&sd.ObjectMeta,
 		deployment.Name,
 		deployment.Namespace,
-		domains,
 		deployment.Name,
+		domains,
 		int(mle.Port()),
 		sd.Spec.Ingress.Labels,
 		annotations,
 		tls,
+		sd.Spec.RateLimit,
+		sd.Spec.Authentication,
 	)
 
 	ingressK := &networkv1.Ingress{}

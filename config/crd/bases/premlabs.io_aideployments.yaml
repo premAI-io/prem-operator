@@ -42,6 +42,8 @@ spec:
                 items:
                   type: string
                 type: array
+              auth:
+                type: boolean
               deployment:
                 properties:
                   accelerator:
@@ -7882,6 +7884,8 @@ spec:
                       type: string
                   type: object
                 type: array
+              ratelimit:
+                type: boolean
               service:
                 properties:
                   annotations:
