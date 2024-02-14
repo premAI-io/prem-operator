@@ -117,4 +117,4 @@ kubectl wait --for=condition=Ready node/$CLUSTER_NAME-control-plane
 export EXTERNAL_IP=$(kubectl get nodes -o jsonpath='{.items[].status.addresses[?(@.type == "InternalIP")].address}')
 export BRIDGE_IP="172.18.0.1"
 kubectl get nodes -o wide
-cd $ROOT_DIR/tests &&  go run github.com/onsi/ginkgo/v2/ginkgo -r -v --focus-file=e2e_localai ./e2e
+cd $ROOT_DIR/tests &&  go run github.com/onsi/ginkgo/v2/ginkgo -r -v ./e2e

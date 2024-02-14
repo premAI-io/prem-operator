@@ -129,32 +129,30 @@ func getTypedClient() client.Client {
 	return client.NewNamespacedClient(c, "default")
 }
 
-func createModelMapSingleEntry(name string, variantName string, uri string) *api.AIModelMap {
+func createModelMapSingleEntry(name api.AIEngineName, variantName string, spec api.AIModelSpec) *api.AIModelMap {
 	modelMap := &api.AIModelMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AIModelMap",
 			APIVersion: api.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: name + "-",
+			GenerateName: string(name) + "-",
 		},
 	}
 
 	variants := []api.AIModelVariant{
 		{
-			Name: variantName,
-			AIModelSpec: api.AIModelSpec{
-				Uri: uri,
-			},
+			Name:        variantName,
+			AIModelSpec: spec,
 		},
 	}
 
 	switch name {
-	case "localai":
+	case api.AIEngineNameLocalai:
 		modelMap.Spec.Localai = variants
-	case "vllm":
+	case api.AIEngineNameVLLM:
 		modelMap.Spec.Vllm = variants
-	case "deepspeed-mii":
+	case api.AIEngineNameDeepSpeedMii:
 		modelMap.Spec.DeepSpeedMii = variants
 	}
 

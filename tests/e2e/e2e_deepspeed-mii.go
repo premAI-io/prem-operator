@@ -254,7 +254,9 @@ var _ = Describe("deepspeed test", func() {
 			var modelMap *api.AIModelMap
 
 			BeforeEach(func() {
-				modelMap = createModelMapSingleEntry("deepspeed-mii", "original", "microsoft/phi-2")
+				modelMap = createModelMapSingleEntry(api.AIEngineNameDeepSpeedMii, "original", api.AIModelSpec{
+					Uri: "microsoft/phi-2",
+				})
 
 				artifact = &api.AIDeployment{
 					TypeMeta: metav1.TypeMeta{

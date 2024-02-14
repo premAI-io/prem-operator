@@ -27,7 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	premlabsv1alpha1 "github.com/premAI-io/saas-controller/api/v1alpha1"
 )
@@ -142,6 +141,6 @@ func (r *AutoNodeLabelerReconciler) patchNode(ctx context.Context, n *corev1.Nod
 func (r *AutoNodeLabelerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&premlabsv1alpha1.AutoNodeLabeler{}).
-		Watches(&source.Kind{Type: &corev1.Node{}}, &handler.EnqueueRequestForObject{}).
+		Watches(&corev1.Node{}, &handler.EnqueueRequestForObject{}).
 		Complete(r)
 }

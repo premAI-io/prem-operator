@@ -9,7 +9,6 @@ const (
 	ImageRepositoryVllm         = "vllm/vllm-openai"
 	ImageRepositoryDeepSpeedMii = "premai/deepspeed-mii"
 
-	DtypeKey           = "dtype"
-	QuantizationKey    = "quantization"
-	ModelsConfigMapKey = "modelsConfigMap"
+	DtypeKey        = "dtype"
+	QuantizationKey = "quantization"
 )

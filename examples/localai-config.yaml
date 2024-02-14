@@ -1,0 +1,34 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIModelMap
+metadata:
+  name: distilroberta
+spec:
+  localai:
+      - name: base
+        uri: "sentence-transformers/paraphrase-distilroberta-base-v1"
+        # The LocalAI model description.
+        engineConfigFile: |
+              name: bert
+              backend: sentencetransformers
+              embeddings: true
+              parameters:
+                model: sentence-transformers/paraphrase-distilroberta-base-v1
+---
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
+metadata:
+  name: simple
+spec:
+  engine:
+    name: "localai" 
+  endpoint:
+    - domain: "simple.127.0.0.1.nip.io"
+      port: 8080 
+  models:
+    - modelMapRef:
+        name: distilroberta
+        variant: base
+  deployment:
+  env:
+    - name: "DEBUG"
+      value: "true"

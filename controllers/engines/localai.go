@@ -61,7 +61,6 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	v := l.AIDeployment.Spec.Env
 
 	v = append(v, v1.EnvVar{Name: "MODELS_PATH", Value: "/models"})
-	v = append(v, v1.EnvVar{Name: "TRANSFORMERS_CACHE", Value: "/models"})
 	image := fmt.Sprintf("%s:%s", imageRepository, imageTag)
 
 	healthProbeHandler := v1.ProbeHandler{
@@ -113,44 +112,43 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 	pod.Volumes = append(pod.Volumes, v1.Volume{
 		Name: "models",
 		VolumeSource: v1.VolumeSource{
+			EmptyDir: &v1.EmptyDirVolumeSource{
+				Medium: v1.StorageMediumMemory,
+			},
+		},
+	}, v1.Volume{
+		Name: "cache",
+		VolumeSource: v1.VolumeSource{
 			EmptyDir: &v1.EmptyDirVolumeSource{},
 		},
 	})
 
-	if l.AIDeployment.Spec.Engine.Options[constants.ModelsConfigMapKey] != "" {
-		pod.Volumes = append(pod.Volumes, v1.Volume{
-			Name: "configs",
-			VolumeSource: v1.VolumeSource{
-				ConfigMap: &v1.ConfigMapVolumeSource{
-					LocalObjectReference: v1.LocalObjectReference{
-						Name: l.AIDeployment.Spec.Engine.Options[constants.ModelsConfigMapKey],
-					},
-				},
-			},
-		})
+	configSources := []v1.VolumeProjection{}
+	configSourceVolume := "configs"
 
-		if l.AIDeployment.Spec.Engine.Options[constants.ModelsConfigMapKey] != "" {
-			pod.InitContainers = append(pod.InitContainers, v1.Container{
-				ImagePullPolicy: v1.PullAlways,
-				Name:            fmt.Sprintf("init-configs-%s", l.AIDeployment.Name),
-				Image:           image,
-				Command:         []string{"sh", "-c"},
-				Args:            []string{"cp -v /configs/* /models"},
-				VolumeMounts: []v1.VolumeMount{
-					{
-						Name:      "configs",
-						MountPath: "/configs",
+	for _, m := range l.Models {
+		if m.Spec.EngineConfigFile != "" {
+			if m.Variant == "" {
+				return nil, fmt.Errorf("inline model %s has engine config file, but we haven't implemented generating ConfigMaps for inline configs", m.Name)
+			}
+			configSources = append(configSources, v1.VolumeProjection{
+				ConfigMap: &v1.ConfigMapProjection{
+					LocalObjectReference: v1.LocalObjectReference{
+						Name: m.Name,
 					},
-					{
-						Name:      "models",
-						MountPath: "/models",
+					Items: []v1.KeyToPath{
+						{
+							Key:  aimodelmap.FmtConfigMapKey(a1.AIEngineNameLocalai, m.Variant, constants.AIModelMapSpecEngineConfig),
+							Path: "engine/" + m.HostName + ".yaml",
+						},
 					},
 				},
 			})
-		}
-	}
 
-	for _, m := range l.Models {
+			// If an engine config is set then specifying the model some other way doesn't make sense
+			continue
+		}
+
 		if strings.HasPrefix(m.Spec.Uri, "http") {
 			pod.InitContainers = append(pod.InitContainers, v1.Container{
 				ImagePullPolicy: v1.PullAlways,
@@ -174,6 +172,35 @@ func (l *LocalAI) Deployment(owner metav1.Object) (*appsv1.Deployment, error) {
 			// LocalAI accepts both names and full URLs passed by as Args.
 			expose.Args = append(expose.Args, m.Spec.Uri)
 		}
+	}
+
+	if len(configSources) > 0 {
+		pod.Volumes = append(pod.Volumes, v1.Volume{
+			Name: configSourceVolume,
+			VolumeSource: v1.VolumeSource{
+				Projected: &v1.ProjectedVolumeSource{
+					Sources: configSources,
+				},
+			},
+		})
+
+		pod.InitContainers = append(pod.InitContainers, v1.Container{
+			ImagePullPolicy: v1.PullAlways,
+			Name:            fmt.Sprintf("init-%s-%s", configSourceVolume, l.AIDeployment.Name),
+			Image:           image,
+			Command:         []string{"sh", "-c"},
+			Args:            []string{fmt.Sprintf("ls /configs/engine && cp -v /%s/engine/* /models", configSourceVolume)},
+			VolumeMounts: []v1.VolumeMount{
+				{
+					Name:      configSourceVolume,
+					MountPath: "/" + configSourceVolume,
+				},
+				{
+					Name:      "models",
+					MountPath: "/models",
+				},
+			},
+		})
 	}
 
 	pod.Containers = append(pod.Containers, *expose)

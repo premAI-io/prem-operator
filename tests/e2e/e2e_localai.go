@@ -318,7 +318,9 @@ var _ = Describe("localai test", func() {
 		var modelMap *api.AIModelMap
 
 		BeforeEach(func() {
-			modelMap = createModelMapSingleEntry("localai", "embedded", "phi-2")
+			modelMap = createModelMapSingleEntry(api.AIEngineNameLocalai, "embedded", api.AIModelSpec{
+				Uri: "phi-2",
+			})
 
 			artifact = &api.AIDeployment{
 				TypeMeta: metav1.TypeMeta{
@@ -431,39 +433,19 @@ var _ = Describe("localai test", func() {
 		})
 	})
 
-	When("We specify a ConfigMap in the engine options", func() {
-		var cm *corev1.ConfigMap
+	When("We specify a ConfigMap in a model CRD", func() {
+		var modelMap *api.AIModelMap
 
 		BeforeEach(func() {
-			c := getTypedClient()
-			cm = &corev1.ConfigMap{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "ConfigMap",
-					APIVersion: api.GroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "model-config-",
-				},
-				Data: map[string]string{
-					"bagel.yaml": `---
-					name: bagelHavePrefix(constants.ContainerEngineName)
-					backend: mamba
-					parameters:
-					  model: "jondurbin/bagel-dpo-2.8b-v0.2"
-					systemPrompt: "You are a helpful, unbiased, uncensored assistant."
-					template:
-					  chat_message: |
-						{{if eq .RoleName "assistant"}}{{.Content}}{{else}}
-						[INST]
-						{{if .SystemPrompt}}{{.SystemPrompt}}{{else if eq .RoleName "system"}}<<SYS>>{{.Content}}<</SYS>>
-				
-						{{else if .Content}}{{.Content}}{{end}}
-						[/INST]
-						{{end}}`,
-				},
-			}
-			err := c.Create(context.Background(), cm)
-			Expect(err).ToNot(HaveOccurred())
+			modelMap = createModelMapSingleEntry(api.AIEngineNameLocalai, "base", api.AIModelSpec{
+				Uri: " sentence-transformers/paraphrase-distilroberta-base-v1",
+				EngineConfigFile: "---\n" +
+					"name: bert\n" +
+					"backend: sentencetransformers\n" +
+					"embeddings: true\n" +
+					"parameters:\n" +
+					"  model: sentence-transformers/paraphrase-distilroberta-base-v1\n",
+			})
 
 			artifact = &api.AIDeployment{
 				TypeMeta: metav1.TypeMeta{
@@ -476,23 +458,37 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
-						Options: map[string]string{
-							constants.ModelsConfigMapKey: cm.Name,
-						},
+					},
+					Endpoint: []api.Endpoint{{
+						Domain: "foo.127.0.0.1.nip.io",
+					},
 					},
 					Models: []api.AIModel{
 						{
-							AIModelSpec: api.AIModelSpec{
-								Uri: "https://huggingface.co/jondurbin/bagel-dpo-2.8b-v0.2/resolve/main/pytorch_model.bin?download=true",
+							ModelMapRef: &api.AIModelMapReference{
+								Name:    modelMap.Name,
+								Variant: "base",
 							},
+						},
+					},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "DEBUG",
+							Value: "true",
 						},
 					},
 				},
 			}
 		})
 
-		It("Creates a deployment with the ConfigMap contents mounted as a volume in the init container", func() {
-			By("creating the workload with the asso466ciated label")
+		AfterEach(func() {
+			c := getTypedClient()
+			err := c.Delete(context.Background(), modelMap)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("Creates a deployment with the expected volumes", func() {
+			By("creating the workload with the associated label")
 			Eventually(func(g Gomega) bool {
 				deployment := &appsv1.Deployment{}
 
@@ -500,35 +496,77 @@ var _ = Describe("localai test", func() {
 					return false
 				}
 
-				g.Expect(deployment.Spec.Template.Spec.Volumes).To(HaveLen(2))
+				g.Expect(deployment.Spec.Template.Spec.Volumes).To(HaveLen(3))
 				g.Expect(deployment.Spec.Template.Spec.Volumes[0].Name).To(Equal("models"))
-				g.Expect(deployment.Spec.Template.Spec.Volumes[0].EmptyDir).ToNot(BeNil())
-				g.Expect(deployment.Spec.Template.Spec.Volumes[1].Name).To(Equal("configs"))
-				g.Expect(deployment.Spec.Template.Spec.Volumes[1].ConfigMap).ToNot(BeNil())
-				g.Expect(deployment.Spec.Template.Spec.Volumes[1].ConfigMap.Name).To(Equal(cm.Name))
-
-				c := deployment.Spec.Template.Spec.InitContainers[0]
-				g.Expect(c.Name).To(Equal("init-configs-" + artifactName))
-				g.Expect(c.VolumeMounts).To(HaveLen(2))
-				g.Expect(c.VolumeMounts[0].Name).To(Equal("configs"))
-				g.Expect(c.VolumeMounts[0].MountPath).To(Equal("/configs"))
-				g.Expect(c.VolumeMounts[1].Name).To(Equal("models"))
-				g.Expect(c.VolumeMounts[1].MountPath).To(Equal("/models"))
-
-				c = deployment.Spec.Template.Spec.InitContainers[1]
-				g.Expect(c.Name).To(Equal("init-models-" + artifactName))
-				g.Expect(c.VolumeMounts).To(HaveLen(1))
-				g.Expect(c.VolumeMounts[0].Name).To(Equal("models"))
-				g.Expect(c.VolumeMounts[0].MountPath).To(Equal("/models"))
-
-				c = deployment.Spec.Template.Spec.Containers[0]
-				g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
-				g.Expect(c.VolumeMounts).To(HaveLen(1))
-				g.Expect(c.VolumeMounts[0].Name).To(Equal("models"))
-				g.Expect(c.VolumeMounts[0].MountPath).To(Equal("/models"))
+				g.Expect(deployment.Spec.Template.Spec.Volumes[2].Name).To(Equal("configs"))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
+
+			By("waiting for the Pod to be running")
+			Eventually(func(g Gomega) bool {
+				deploymentPod := &corev1.Pod{}
+				if getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+					return deploymentPod.Status.Phase == corev1.PodRunning
+				}
+
+				return false
+			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(BeTrue())
+
+			By("waiting for the Pod to be marked as ready")
+			Eventually(func(g Gomega) bool {
+				deploymentPod := &corev1.Pod{}
+				if !getObjectWithLabel(pods, deploymentPod, resources.DefaultAnnotation, artifactName) {
+					return false
+				}
+
+				for _, cond := range deploymentPod.Status.Conditions {
+					switch ctype := cond.Type; ctype {
+					case "Ready":
+						return cond.Status == "True"
+					default:
+					}
+				}
+
+				return false
+			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(BeTrue())
+
+			By("waiting for the Service and Ingress to be created")
+			Eventually(func(g Gomega) bool {
+				p := &corev1.Service{}
+				return getObjectWithAnnotation(svc, p, resources.DefaultAnnotation, artifactName)
+			}).WithTimeout(time.Minute).Should(BeTrue())
+
+			Eventually(func(g Gomega) bool {
+				p := &networkv1.Ingress{}
+				return getObjectWithAnnotation(ingr, p, resources.DefaultAnnotation, artifactName)
+			}).WithTimeout(time.Minute).Should(BeTrue())
+
+			By("waiting for the API to respond")
+			Eventually(func(g Gomega) string {
+				url := "http://foo.127.0.0.1.nip.io:8080/v1/models"
+				req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+				if err != nil {
+					fmt.Println("Error creating request:", err)
+					return ""
+				}
+
+				req.Header.Set("Content-Type", "application/json")
+
+				client := &http.Client{}
+				resp, err := client.Do(req)
+				if err != nil {
+					fmt.Println("Error making request:", err)
+					return ""
+				}
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					fmt.Println("Error reading request body:", err)
+					return ""
+				}
+				return string(body)
+			}).WithPolling(5 * time.Second).WithTimeout(time.Hour).Should(ContainSubstring("bert"))
 		})
 	})
 })

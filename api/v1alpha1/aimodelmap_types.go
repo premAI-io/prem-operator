@@ -84,8 +84,19 @@ type AIModelRuntimeParams struct {
 	PresPenalty string `json:"prespenalty,omitempty"`
 }
 
+// A file that is either part of the model or configures the engine
+type AIModelFile struct {
+	// Remote URI to get the file contents from if different from the model URI
+	// +optional
+	Uri string `json:"uri,omitempty"`
+	// Local path or name of the file. If the file URI is not set then this can be
+	// used with the model URI (see HugginFace hub downloaded).
+	Path string `json:"path"`
+}
+
 // Information needed to use a model
 // TODO: Uncomment or remove fields
+// NOTE: Remember to update the mergeModelSpecs function in resolve.go when adding fields
 type AIModelSpec struct {
 	Uri string `json:"uri,omitempty"`
 	//CacheUri          string			  `json:"cache,omitempty"`
@@ -99,6 +110,10 @@ type AIModelSpec struct {
 	//BitsPerParameter uint8               `json:"bitsperparameter,omitempty"`
 
 	//DefaultRuntimeParams *AIModelRuntimeParams `json:"defaultruntimeparams,omitempty"`
+
+	// Config file particular to the engine e.g. a LocalAI model specification
+	// +optional
+	EngineConfigFile string `json:"engineConfigFile,omitempty"`
 }
 
 type AIModelMapReference struct {

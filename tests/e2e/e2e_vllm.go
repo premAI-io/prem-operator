@@ -309,7 +309,9 @@ var _ = Describe("vllm test", func() {
 			var modelMap *api.AIModelMap
 
 			BeforeEach(func() {
-				modelMap = createModelMapSingleEntry("vllm", "original", "microsoft/phi-2")
+				modelMap = createModelMapSingleEntry(api.AIEngineNameVLLM, "original", api.AIModelSpec{
+					Uri: "microsoft/phi-2",
+				})
 
 				artifact = &api.AIDeployment{
 					TypeMeta: metav1.TypeMeta{

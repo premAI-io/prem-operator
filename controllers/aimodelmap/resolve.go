@@ -11,8 +11,10 @@ import (
 )
 
 type ResolvedModel struct {
-	Name string
-	Spec a1.AIModelSpec
+	Name     string
+	Variant  string
+	HostName string
+	Spec     a1.AIModelSpec
 }
 
 func Resolve(d *a1.AIDeployment, ctx context.Context, c ctrlClient.Client) ([]ResolvedModel, error) {
@@ -61,14 +63,20 @@ func mergeModelSpecs(primary *a1.AIModelSpec, secondary *a1.AIModelSpec) *a1.AIM
 		result.Quantization = secondary.Quantization
 	}
 
+	if result.EngineConfigFile == "" {
+		result.EngineConfigFile = secondary.EngineConfigFile
+	}
+
 	return result
 }
 
 func resolveOne(m *a1.AIModel, d *a1.AIDeployment, ctx context.Context, c ctrlClient.Client) (*ResolvedModel, error) {
 	if m.ModelMapRef == nil {
 		return &ResolvedModel{
-			Name: utils.ToHostName(d.Name + "-model"),
-			Spec: m.AIModelSpec,
+			Name:     d.Name,
+			Variant:  "inline",
+			HostName: utils.ToHostName(d.Name + "-model"),
+			Spec:     m.AIModelSpec,
 		}, nil
 	}
 
@@ -113,7 +121,9 @@ func resolveOne(m *a1.AIModel, d *a1.AIDeployment, ctx context.Context, c ctrlCl
 	merged := mergeModelSpecs(&m.AIModelSpec, variant)
 
 	return &ResolvedModel{
-		Name: utils.ToHostName(m.ModelMapRef.Name + "-" + m.ModelMapRef.Variant),
-		Spec: *merged,
+		Name:     m.ModelMapRef.Name,
+		Variant:  m.ModelMapRef.Variant,
+		HostName: utils.ToHostName(m.ModelMapRef.Name + "-" + m.ModelMapRef.Variant),
+		Spec:     *merged,
 	}, nil
 }
