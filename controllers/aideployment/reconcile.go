@@ -2,9 +2,9 @@ package aideployment
 
 import (
 	"context"
-
+	"fmt"
+	"github.com/premAI-io/saas-controller/controllers/constants"
 	log "github.com/sirupsen/logrus"
-
 	networkv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -68,21 +68,11 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		}
 	}
 
-	if d.Status.AvailableReplicas == 0 {
-		log.Debug("Deployment ", deployment.Namespace, ":", deployment.Name, " is not ready, requeueing")
-		e := sd.DeepCopy()
-		e.Status.Status = "NotReady"
-		if err := c.Update(ctx, e); err != nil {
-			return 0, err
-		}
-		requeue = 3
-	} else {
-		e := sd.DeepCopy()
-		e.Status.Status = "Ready"
-		if err := c.Update(ctx, e); err != nil {
-			return 0, err
-		}
+	re, err := updateAIDeploymentStatus(ctx, c, &sd, d)
+	if err != nil {
+		return 0, err
 	}
+	requeue = re
 
 	annotations := resources.GenDefaultAnnotation(sd.Name)
 	for k, v := range sd.Spec.Service.Annotations {
@@ -177,5 +167,28 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		"Reconcile completed: ", sd.Name, " in namespace: ", sd.Namespace,
 	)
 
+	return requeue, nil
+}
+
+func updateAIDeploymentStatus(
+	ctx context.Context,
+	c ctrlClient.Client,
+	aiDeployment *v1alpha1.AIDeployment,
+	deployment *appsv1.Deployment,
+) (int, error) {
+	aiDep := aiDeployment.DeepCopy()
+	// The status of the Deployment might not be immediately available after the
+	// Deployment resource is created or updated, requeue to check the deployment
+	// status again after 3 seconds
+	requeue := 3
+	aiDep.Status.Status = constants.NotReady
+	if deployment.Status.AvailableReplicas > 0 {
+		aiDep.Status.Status = constants.Ready
+		requeue = 0
+	}
+
+	if err := c.Status().Update(ctx, aiDep); err != nil {
+		return requeue, fmt.Errorf("failed to update AI deployment status: %w", err)
+	}
 	return requeue, nil
 }

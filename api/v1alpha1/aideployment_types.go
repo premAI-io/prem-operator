@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/premAI-io/saas-controller/controllers/constants"
 	v1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -167,7 +168,7 @@ type AIModel struct {
 type AIDeploymentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Status string `json:"status,omitempty"`
+	Status constants.Status `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
