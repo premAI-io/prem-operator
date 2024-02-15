@@ -170,6 +170,7 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 	return requeue, nil
 }
 
+// updateAIDeploymentStatus updates the status of the AI deployment
 func updateAIDeploymentStatus(
 	ctx context.Context,
 	c ctrlClient.Client,
