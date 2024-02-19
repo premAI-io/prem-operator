@@ -101,6 +101,8 @@ func resolveOne(m *a1.AIModel, d *a1.AIDeployment, ctx context.Context, c ctrlCl
 
 	var variants []a1.AIModelVariant
 	switch d.Spec.Engine.Name {
+	case a1.AIEngineNameTriton:
+		variants = mm.Spec.TensorRT
 	case a1.AIEngineNameLocalai:
 		variants = mm.Spec.Localai
 	case a1.AIEngineNameVLLM:

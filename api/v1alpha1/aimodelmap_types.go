@@ -100,12 +100,13 @@ type AIModelFile struct {
 type AIModelSpec struct {
 	Uri string `json:"uri,omitempty"`
 	//CacheUri          string			  `json:"cache,omitempty"`
-	//Format           AIModelFormat       `json:"format,omitempty"`
 	//Framework        AIModelFramework    `json:"framework,omitempty"`
 	// +optional
 	Quantization AIModelQuantization `json:"quantization,omitempty"`
 	// +optional
 	DataType AIModelDataType `json:"dataType,omitempty"`
+	// +optional
+	Format AIModelFormat `json:"format,omitempty"`
 	//ParameterCount   string              `json:"parametercount,omitempty"`
 	//BitsPerParameter uint8               `json:"bitsperparameter,omitempty"`
 
@@ -134,6 +135,7 @@ type AIModelMapSpec struct {
 	Localai      []AIModelVariant `json:"localai,omitempty"`
 	Vllm         []AIModelVariant `json:"vllm,omitempty"`
 	DeepSpeedMii []AIModelVariant `json:"deepspeed-mii,omitempty"`
+	TensorRT     []AIModelVariant `json:"tensor_rt,omitempty"`
 }
 
 // AIModelMapStatus defines the observed state of AIModelMap

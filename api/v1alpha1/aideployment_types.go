@@ -148,6 +148,7 @@ const (
 	AIEngineNameVLLM         AIEngineName = "vllm"
 	AIEngineNameGeneric      AIEngineName = "generic"
 	AIEngineNameDeepSpeedMii AIEngineName = "deepspeed-mii"
+	AIEngineNameTriton       AIEngineName = "triton"
 )
 
 type AIEngine struct {

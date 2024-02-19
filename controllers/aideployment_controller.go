@@ -80,6 +80,8 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	switch ent.Spec.Engine.Name {
+	case v1alpha1.AIEngineNameTriton:
+		mlEngine = engines.NewTriton(&ent, models)
 	case v1alpha1.AIEngineNameLocalai:
 		mlEngine = engines.NewLocalAI(&ent, models)
 	case v1alpha1.AIEngineNameVLLM:

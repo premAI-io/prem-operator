@@ -85,7 +85,9 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		deployment.Namespace,
 		deployment.Spec.Template.Labels,
 		sd.Spec.Service.Labels,
-		annotations, mle.Port())
+		annotations,
+		mle.Port(),
+	)
 
 	svcK := &v1.Service{}
 	// try to find if a svc already exists
