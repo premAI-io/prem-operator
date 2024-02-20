@@ -76,7 +76,11 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	models, err := aimodelmap.Resolve(&ent, ctx, r.Client)
 	if err != nil {
-		return ctrl.Result{}, err
+		_, err1 := aideployment.UpdateAIDeploymentStatus(
+			ctx, r.Client, &ent, nil, err.Error(),
+		)
+
+		return ctrl.Result{}, fmt.Errorf("%w: %v", err, err1)
 	}
 
 	switch ent.Spec.Engine.Name {
@@ -97,15 +101,34 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, err
 		}
 	default:
-		return ctrl.Result{}, fmt.Errorf("unknown engine %s", ent.Spec.Engine.Name)
+		err = fmt.Errorf("unknown engine %s", ent.Spec.Engine.Name)
+	}
+
+	if err != nil {
+		_, err1 := aideployment.UpdateAIDeploymentStatus(
+			ctx, r.Client, &ent, nil, err.Error(),
+		)
+
+		return ctrl.Result{}, fmt.Errorf("%w: %v", err, err1)
 	}
 
 	requeue, err := aideployment.Reconcile(ent, ctx, r.Client, mlEngine)
 	if requeue > 0 {
 		return ctrl.Result{RequeueAfter: time.Second * time.Duration(requeue)}, err
 	}
+	if err != nil {
+		_, err1 := aideployment.UpdateAIDeploymentStatus(
+			ctx,
+			r.Client,
+			&ent,
+			nil,
+			fmt.Sprintf("Reconciliation error: %v", err),
+		)
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("%w: %v", err, err1)
+	}
+
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -48,12 +48,13 @@ spec:
                       description: Config file particular to the engine e.g. a LocalAI
                         model specification
                       type: string
+                    format:
+                      type: string
                     name:
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                       type: string
                     quantization:
-                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFormat
-                        \          AIModelFormat       `json:\"format,omitempty\"`\nFramework
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFramework
                         \       AIModelFramework    `json:\"framework,omitempty\"`"
                       type: string
                     uri:
@@ -71,12 +72,37 @@ spec:
                       description: Config file particular to the engine e.g. a LocalAI
                         model specification
                       type: string
+                    format:
+                      type: string
                     name:
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                       type: string
                     quantization:
-                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFormat
-                        \          AIModelFormat       `json:\"format,omitempty\"`\nFramework
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFramework
+                        \       AIModelFramework    `json:\"framework,omitempty\"`"
+                      type: string
+                    uri:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+              tensor_rt:
+                items:
+                  properties:
+                    dataType:
+                      type: string
+                    engineConfigFile:
+                      description: Config file particular to the engine e.g. a LocalAI
+                        model specification
+                      type: string
+                    format:
+                      type: string
+                    name:
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      type: string
+                    quantization:
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFramework
                         \       AIModelFramework    `json:\"framework,omitempty\"`"
                       type: string
                     uri:
@@ -94,12 +120,13 @@ spec:
                       description: Config file particular to the engine e.g. a LocalAI
                         model specification
                       type: string
+                    format:
+                      type: string
                     name:
                       pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                       type: string
                     quantization:
-                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFormat
-                        \          AIModelFormat       `json:\"format,omitempty\"`\nFramework
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFramework
                         \       AIModelFramework    `json:\"framework,omitempty\"`"
                       type: string
                     uri:

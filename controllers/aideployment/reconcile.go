@@ -68,7 +68,7 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		}
 	}
 
-	re, err := updateAIDeploymentStatus(ctx, c, &sd, d)
+	re, err := UpdateAIDeploymentStatus(ctx, c, &sd, d, "")
 	if err != nil {
 		return 0, err
 	}
@@ -172,14 +172,26 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 	return requeue, nil
 }
 
-// updateAIDeploymentStatus updates the status of the AI deployment
-func updateAIDeploymentStatus(
+// UpdateAIDeploymentStatus updates the status of the AI deployment
+func UpdateAIDeploymentStatus(
 	ctx context.Context,
 	c ctrlClient.Client,
 	aiDeployment *v1alpha1.AIDeployment,
 	deployment *appsv1.Deployment,
+	errMsg string,
 ) (int, error) {
 	aiDep := aiDeployment.DeepCopy()
+
+	if errMsg != "" {
+		aiDep.Status.Status = constants.Failed
+		aiDep.Status.ErrMsg = errMsg
+		if err := c.Status().Update(ctx, aiDep); err != nil {
+			return 0, fmt.Errorf("failed to update AI deployment status: %w", err)
+		}
+
+		return 0, nil
+	}
+
 	// The status of the Deployment might not be immediately available after the
 	// Deployment resource is created or updated, requeue to check the deployment
 	// status again after 3 seconds

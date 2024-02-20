@@ -7925,6 +7925,8 @@ spec:
                       description: Config file particular to the engine e.g. a LocalAI
                         model specification
                       type: string
+                    format:
+                      type: string
                     modelMapRef:
                       properties:
                         name:
@@ -7942,8 +7944,7 @@ spec:
                         type: string
                       type: object
                     quantization:
-                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFormat
-                        \          AIModelFormat       `json:\"format,omitempty\"`\nFramework
+                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFramework
                         \       AIModelFramework    `json:\"framework,omitempty\"`"
                       type: string
                     uri:
@@ -7967,6 +7968,10 @@ spec:
           status:
             description: AIDeploymentStatus defines the observed state of AIDeployment
             properties:
+              errMsg:
+                description: Error message if the deployment failed, otherwise it
+                  is empty
+                type: string
               status:
                 description: |-
                   INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
