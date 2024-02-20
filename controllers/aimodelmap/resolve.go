@@ -17,6 +17,7 @@ type ResolvedModel struct {
 	Spec     a1.AIModelSpec
 }
 
+// Resolve resolves the models in the deployment
 func Resolve(d *a1.AIDeployment, ctx context.Context, c ctrlClient.Client) ([]ResolvedModel, error) {
 	ms := make([]ResolvedModel, 0, len(d.Spec.Models))
 
