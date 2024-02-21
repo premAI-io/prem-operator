@@ -4,10 +4,10 @@ metadata:
   name: mixtral-8x7b-instruct-v0.1
 spec:
   localai:
-    - name: q2-k-gguf
+    - variant: base
       uri: "https://huggingface.co/mudler/LocalAI/resolve/main/examples/configurations/mixtral/mixtral.yaml?download=true"
   vllm:
-    - name: original
+    - variant: base
       uri: "mistralai/Mixtral-8x7B-Instruct-v0.1"
 ---
 apiVersion: premlabs.io/v1alpha1
@@ -16,11 +16,10 @@ metadata:
   name: tinyllama-1.1b-chat-v0.1
 spec:
   localai:
-    - name: q4-k-m
-      # TODO define context_size top_k etc.
+    - variant: q4-k-m
       uri: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v0.3-GGUF/resolve/main/tinyllama-1.1b-chat-v0.3.Q4_K_M.gguf"
   vllm:
-    - name: awq
+    - variant: awq
       uri: "TheBloke/TinyLlama-1.1B-Chat-v0.1-AWQ"
       dataType: "float16"
 ---
@@ -34,7 +33,7 @@ spec:
   models:
     - modelMapRef: 
         name: tinyllama-1.1b-chat-v0.1
-        variant: "q4-k-m"
+        variant: q4-k-m
     - uri: "phi-2"
   endpoint:
     - domain: "tinyllama.127.0.0.1.nip.io"

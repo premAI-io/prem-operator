@@ -154,7 +154,7 @@ func addVariants(cm *corev1.ConfigMap, engineName a1.AIEngineName, variants []a1
 
 	for _, v := range variants {
 		if v.EngineConfigFile != "" {
-			aimodelmap.SetEngineConfigFileData(cm, engineName, v.Name, v.EngineConfigFile)
+			aimodelmap.SetEngineConfigFileData(cm, engineName, v.Variant, v.EngineConfigFile)
 			addedCount += 1
 		}
 	}

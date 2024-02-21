@@ -4,7 +4,7 @@ metadata:
   name: distilroberta
 spec:
   localai:
-      - name: base
+      - variant: base
         uri: "sentence-transformers/paraphrase-distilroberta-base-v1"
         # The LocalAI model description.
         engineConfigFile: |

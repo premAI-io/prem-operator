@@ -126,7 +126,7 @@ type AIModelMapReference struct {
 
 type AIModelVariant struct {
 	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
-	Name        string `json:"name"`
+	Variant     string `json:"variant"`
 	AIModelSpec `json:",inline"`
 }
 

@@ -12,8 +12,7 @@ spec:
     - domain: "foo.127.0.0.1.nip.io"
       port: 8080 
   models:
-    - format: "gguf" 
-      uri: "https://huggingface.co/afrideva/llama2_xs_460M_experimental-GGUF/resolve/main/llama2_xs_460m_experimental.q8_0.gguf?download=true"
+    - uri: "https://huggingface.co/afrideva/llama2_xs_460M_experimental-GGUF/resolve/main/llama2_xs_460m_experimental.q8_0.gguf?download=true"
   service:
     annotations:
     labels:

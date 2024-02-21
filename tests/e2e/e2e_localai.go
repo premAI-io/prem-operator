@@ -341,7 +341,7 @@ var _ = Describe("localai test", func() {
 						{
 							ModelMapRef: &api.AIModelMapReference{
 								Name:    modelMap.Name,
-								Variant: modelMap.Spec.Localai[0].Name,
+								Variant: modelMap.Spec.Localai[0].Variant,
 							},
 						},
 					},

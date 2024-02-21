@@ -37,7 +37,7 @@ func Resolve(d *a1.AIDeployment, ctx context.Context, c ctrlClient.Client) ([]Re
 
 func findVariant(mv []a1.AIModelVariant, name string) *a1.AIModelSpec {
 	for _, v := range mv {
-		if v.Name == name {
+		if v.Variant == name {
 			return &v.AIModelSpec
 		}
 	}

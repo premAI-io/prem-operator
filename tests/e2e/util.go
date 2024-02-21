@@ -142,7 +142,7 @@ func createModelMapSingleEntry(name api.AIEngineName, variantName string, spec a
 
 	variants := []api.AIModelVariant{
 		{
-			Name:        variantName,
+			Variant:     variantName,
 			AIModelSpec: spec,
 		},
 	}

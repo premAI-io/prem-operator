@@ -68,14 +68,14 @@ var _ = Describe("AIModelMap", func() {
 				Spec: api.AIModelMapSpec{
 					Localai: []api.AIModelVariant{
 						{
-							Name: "variant1",
+							Variant: "variant1",
 							AIModelSpec: api.AIModelSpec{
 								Uri:              "s3://prem-ai/aimodels/variant1",
 								EngineConfigFile: "engine config file content",
 							},
 						},
 						{
-							Name: "variant2",
+							Variant: "variant2",
 							AIModelSpec: api.AIModelSpec{
 								Uri:              "s3://prem-ai/aimodels/variant2",
 								EngineConfigFile: "engine config file content",
@@ -84,7 +84,7 @@ var _ = Describe("AIModelMap", func() {
 					},
 					Vllm: []api.AIModelVariant{
 						{
-							Name: "variant1",
+							Variant: "variant1",
 							AIModelSpec: api.AIModelSpec{
 								Uri:              "s3://prem-ai/aimodels/variant1",
 								EngineConfigFile: "engine config file content",
