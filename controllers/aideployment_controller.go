@@ -90,20 +90,13 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		mlEngine = engines.NewLocalAI(&ent, models)
 	case v1alpha1.AIEngineNameVLLM:
 		mlEngine, err = engines.NewVllmAi(&ent, models)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
 	case v1alpha1.AIEngineNameGeneric:
 		mlEngine = engines.NewGeneric(&ent)
 	case v1alpha1.AIEngineNameDeepSpeedMii:
 		mlEngine, err = engines.NewDeepSpeedMii(&ent, models)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
 	default:
 		err = fmt.Errorf("unknown engine %s", ent.Spec.Engine.Name)
 	}
-
 	if err != nil {
 		_, err1 := aideployment.UpdateAIDeploymentStatus(
 			ctx, r.Client, &ent, nil, err.Error(),
