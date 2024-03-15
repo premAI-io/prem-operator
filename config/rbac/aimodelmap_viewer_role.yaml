@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/instance: aimodelmap-viewer-role
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: saas-operator
-    app.kubernetes.io/part-of: saas-operator
+    app.kubernetes.io/created-by: prem-operator
+    app.kubernetes.io/part-of: prem-operator
     app.kubernetes.io/managed-by: kustomize
   name: aimodelmap-viewer-role
 rules:

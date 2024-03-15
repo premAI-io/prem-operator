@@ -3,10 +3,10 @@ package aideployment
 import (
 	"fmt"
 
-	"github.com/premAI-io/saas-controller/controllers/constants"
-	"github.com/premAI-io/saas-controller/pkg/utils"
+	"github.com/premAI-io/prem-operator/controllers/constants"
+	"github.com/premAI-io/prem-operator/pkg/utils"
 
-	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
+	a1 "github.com/premAI-io/prem-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

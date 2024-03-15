@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	api "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
-	"github.com/premAI-io/saas-controller/controllers/constants"
+	api "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/aimodelmap"
+	"github.com/premAI-io/prem-operator/controllers/constants"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

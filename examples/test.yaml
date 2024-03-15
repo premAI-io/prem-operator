@@ -12,7 +12,7 @@ spec:
     - domain: "foo.127.0.0.1.nip.io"
       port: 8080 
   models:
-    - uri: "https://huggingface.co/afrideva/llama2_xs_460M_experimental-GGUF/resolve/main/llama2_xs_460m_experimental.q8_0.gguf?download=true"
+    - uri: tinyllama-chat
   service:
     annotations:
     labels:
@@ -25,7 +25,7 @@ spec:
     resources:
       requests:
         cpu: 8
-        memory: "500Mi"
+        memory: "3Gi"
   env:
     - name: "DEBUG"
       value: "true"

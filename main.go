@@ -32,9 +32,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	"github.com/premAI-io/saas-controller/api/v1alpha1"
-	premlabsv1alpha1 "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers"
+	"github.com/premAI-io/prem-operator/api/v1alpha1"
+	premlabsv1alpha1 "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -73,7 +73,6 @@ func main() {
 		Metrics: server.Options{
 			BindAddress: metricsAddr,
 		},
-		//Port:                   9443, removed in version upgrade?
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ca51f953.premlabs.io",

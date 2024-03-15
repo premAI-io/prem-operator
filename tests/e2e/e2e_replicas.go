@@ -6,8 +6,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	api "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/resources"
+	api "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

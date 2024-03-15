@@ -8,8 +8,8 @@ layout:
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
-projectName: saas-operator
-repo: github.com/premAI-io/saas-controller
+projectName: prem-operator
+repo: github.com/premAI-io/prem-operator
 resources:
 - api:
     crdVersion: v1
@@ -18,7 +18,7 @@ resources:
   domain: io
   group: premlabs
   kind: AIDeployment
-  path: github.com/premAI-io/saas-controller/api/v1alpha1
+  path: github.com/premAI-io/prem-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -27,7 +27,7 @@ resources:
   domain: io
   group: premlabs
   kind: AutoNodeLabeler
-  path: github.com/premAI-io/saas-controller/api/v1alpha1
+  path: github.com/premAI-io/prem-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -36,6 +36,6 @@ resources:
   domain: io
   group: premlabs
   kind: AIModelMap
-  path: github.com/premAI-io/saas-controller/api/v1alpha1
+  path: github.com/premAI-io/prem-operator/api/v1alpha1
   version: v1alpha1
 version: "3"

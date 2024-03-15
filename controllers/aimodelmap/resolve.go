@@ -6,8 +6,8 @@ import (
 
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/pkg/utils"
+	a1 "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/pkg/utils"
 )
 
 type ResolvedModel struct {

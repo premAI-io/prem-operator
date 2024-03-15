@@ -3,8 +3,8 @@ package aimodelmap
 import (
 	"fmt"
 
-	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/constants"
+	a1 "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/constants"
 	v1 "k8s.io/api/core/v1"
 )
 

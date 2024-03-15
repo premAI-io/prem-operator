@@ -9,8 +9,8 @@ on:
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
-  IMAGE_NAME: premai/saas-controller
-  IMAGE_CHART_NAME: premai/saas-controller-chart
+  IMAGE_NAME: premai/prem-operator
+  IMAGE_CHART_NAME: premai/prem-operator-chart
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
   build-and-push-image:
@@ -25,7 +25,7 @@ jobs:
           && sudo apt-get update \
           && sudo apt-get install -y git wget make curl
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '>=1.17.0'
       - name: Checkout repository
@@ -78,5 +78,5 @@ jobs:
           echo "Login"
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | helm registry login docker.io -u '${{ secrets.DOCKERHUB_USERNAME }}' --password-stdin
           echo "Package and push"
-          helm package --version "${version}" --app-version $app_version charts/saas-controller-chart
-          helm push saas-controller-chart-${version}.tgz oci://docker.io/premai
+          helm package --version "${version}" --app-version $app_version charts/prem-operator-chart
+          helm push prem-operator-chart-${version}.tgz oci://docker.io/premai

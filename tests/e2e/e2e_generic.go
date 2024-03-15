@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	api "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/constants"
-	"github.com/premAI-io/saas-controller/controllers/resources"
+	api "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/constants"
+	"github.com/premAI-io/prem-operator/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -76,15 +76,10 @@ var _ = Describe("generic test", func() {
 					Deployment: api.Deployment{
 						PodTemplate: &corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
-								ImagePullSecrets: []corev1.LocalObjectReference{
-									{
-										Name: "regcred-dockerhub",
-									},
-								},
 								Containers: []corev1.Container{
 									{
 										Name:  "bun",
-										Image: "oven/bun",
+										Image: "oven/bun:latest",
 									},
 								},
 							},
@@ -103,8 +98,8 @@ var _ = Describe("generic test", func() {
 				}
 
 				c := deploymentPod.Spec.Containers[0]
-				g.Expect(c.Name).To(HavePrefix("bun"))
-				g.Expect(c.Image).To(Equal("oven/bun"))
+				g.Expect(c.Name).To(HavePrefix(constants.ContainerEngineName))
+				g.Expect(c.Image).To(Equal("oven/bun:latest"))
 
 				return true
 			}).WithPolling(5 * time.Second).WithTimeout(time.Minute).Should(BeTrue())
@@ -153,15 +148,10 @@ var _ = Describe("generic test", func() {
 							},
 							PodTemplate: &corev1.PodTemplateSpec{
 								Spec: corev1.PodSpec{
-									ImagePullSecrets: []corev1.LocalObjectReference{
-										{
-											Name: "regcred-dockerhub",
-										},
-									},
 									Containers: []corev1.Container{
 										{
 											Name:  "bun",
-											Image: "oven/bun",
+											Image: "oven/bun:latest",
 										},
 									},
 								},

@@ -8,7 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	api "github.com/premAI-io/saas-controller/api/v1alpha1"
+	api "github.com/premAI-io/prem-operator/api/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -91,7 +91,7 @@ func getObjectWithName(resource dynamic.ResourceInterface, obj metav1.Object, na
 
 func checkLogs(startTime time.Time) {
 	k8s := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())
-	oper := k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("saas-operator-system")
+	oper := k8s.Resource(schema.GroupVersionResource{Group: corev1.GroupName, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"}).Namespace("prem-operator-system")
 
 	controllerPod := &corev1.Pod{}
 	getObjectWithLabel(oper, controllerPod, "control-plane", "controller-manager")

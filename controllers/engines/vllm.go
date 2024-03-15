@@ -3,12 +3,12 @@ package engines
 import (
 	"fmt"
 
-	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/aideployment"
-	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
-	"github.com/premAI-io/saas-controller/controllers/constants"
-	"github.com/premAI-io/saas-controller/controllers/resources"
-	"github.com/premAI-io/saas-controller/pkg/utils"
+	a1 "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/aideployment"
+	"github.com/premAI-io/prem-operator/controllers/aimodelmap"
+	"github.com/premAI-io/prem-operator/controllers/constants"
+	"github.com/premAI-io/prem-operator/controllers/resources"
+	"github.com/premAI-io/prem-operator/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"

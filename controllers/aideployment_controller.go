@@ -27,10 +27,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/aideployment"
-	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
-	"github.com/premAI-io/saas-controller/controllers/engines"
+	"github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/aideployment"
+	"github.com/premAI-io/prem-operator/controllers/aimodelmap"
+	"github.com/premAI-io/prem-operator/controllers/engines"
 )
 
 // AIDeploymentReconciler reconciles a AIDeployment object
@@ -49,7 +49,7 @@ type AIDeploymentReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
+//
 // the AIDeployment object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
@@ -60,7 +60,6 @@ func (r *AIDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	_ = log.FromContext(ctx)
 
 	// Creates a deployment targeting a service
-	// TODO(user): your logic here
 	var ent v1alpha1.AIDeployment
 	if err := r.Get(ctx, req.NamespacedName, &ent); err != nil {
 		if apierrors.IsNotFound(err) {

@@ -6,7 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/premAI-io/saas-controller/controllers/resources"
+	"github.com/premAI-io/prem-operator/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,7 +15,7 @@ import (
 
 func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "saas-operator e2e test Suite")
+	RunSpecs(t, "prem-operator e2e test Suite")
 }
 
 func findWorkloadPod(d dynamic.ResourceInterface, artifactName string) func(g Gomega) bool {

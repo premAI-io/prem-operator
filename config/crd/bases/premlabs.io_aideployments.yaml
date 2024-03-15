@@ -46,8 +46,6 @@ spec:
                 items:
                   type: string
                 type: array
-              auth:
-                type: boolean
               deployment:
                 properties:
                   accelerator:
@@ -7925,8 +7923,6 @@ spec:
                       description: Config file particular to the engine e.g. a LocalAI
                         model specification
                       type: string
-                    format:
-                      type: string
                     modelMapRef:
                       properties:
                         name:
@@ -7944,15 +7940,11 @@ spec:
                         type: string
                       type: object
                     quantization:
-                      description: "CacheUri          string\t\t\t  `json:\"cache,omitempty\"`\nFramework
-                        \       AIModelFramework    `json:\"framework,omitempty\"`"
                       type: string
                     uri:
                       type: string
                   type: object
                 type: array
-              ratelimit:
-                type: boolean
               service:
                 properties:
                   annotations:

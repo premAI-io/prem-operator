@@ -3,14 +3,14 @@ package aideployment
 import (
 	"context"
 	"fmt"
-	"github.com/premAI-io/saas-controller/controllers/constants"
+	"github.com/premAI-io/prem-operator/controllers/constants"
 	log "github.com/sirupsen/logrus"
 	networkv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/resources"
+	"github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -134,14 +134,12 @@ func Reconcile(sd v1alpha1.AIDeployment, ctx context.Context, c ctrlClient.Clien
 		&sd.ObjectMeta,
 		deployment.Name,
 		deployment.Namespace,
-		deployment.Name,
 		domains,
+		deployment.Name,
 		int(mle.Port()),
 		sd.Spec.Ingress.Labels,
 		annotations,
 		tls,
-		sd.Spec.RateLimit,
-		sd.Spec.Authentication,
 	)
 
 	ingressK := &networkv1.Ingress{}

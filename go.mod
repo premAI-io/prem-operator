@@ -1,4 +1,4 @@
-module github.com/premAI-io/saas-controller
+module github.com/premAI-io/prem-operator
 
 go 1.21
 

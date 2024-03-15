@@ -1,7 +1,7 @@
 package resources
 
 import (
-	"github.com/premAI-io/saas-controller/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )

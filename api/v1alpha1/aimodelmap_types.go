@@ -21,33 +21,6 @@ import (
 )
 
 // +enum
-type AIModelFormat string
-
-const (
-	AIModelFormatGguf        AIModelFormat = "gguf"
-	AIModelFormatGgml        AIModelFormat = "ggml"
-	AIModelFormatOnnx        AIModelFormat = "onnx"
-	AIModelFormatCtranslate  AIModelFormat = "ctranslate"
-	AIModelFormatPickle      AIModelFormat = "pickle"
-	AIModelFormatSafeTensor  AIModelFormat = "safetensor"
-	AIModelFormatProtobuf    AIModelFormat = "protobuf"
-	AIModelFormatMessagePack AIModelFormat = "msgpack"
-)
-
-// +enum
-type AIModelFramework string
-
-const (
-	AIModelFrameworkPytorch    AIModelFramework = "pytorch"
-	AIModelFrameworkTensorflow AIModelFramework = "tensorflow"
-	AIModelFrameworkSklearn    AIModelFramework = "sklearn"
-	AIModelFrameworkKeras      AIModelFramework = "keras"
-	AIModelFrameworkXgboost    AIModelFramework = "xgboost"
-	AIModelFrameworkLightgbm   AIModelFramework = "lightgbm"
-	AIModelFrameworkPaddle     AIModelFramework = "paddlepaddle"
-)
-
-// +enum
 type AIModelQuantization string
 
 const (
@@ -68,49 +41,14 @@ const (
 	AIModelDataTypeFloat32  AIModelDataType = "float32"
 )
 
-// Parameters that match Prem's UI
-// TODO: Add to AIModelSpec or remove
-type AIModelRuntimeParams struct {
-	// +optional
-	SystemPrompt string `json:"systemprompt,omitempty"`
-	MaxTokens    int    `json:"maxtokens,omitempty"`
-	// +kubebuilder:validation:Pattern=`^-?\d+(\.\d+)?$`
-	Temperature string `json:"temperature,omitempty"`
-	// +kubebuilder:validation:Pattern=`^-?\d+(\.\d+)?$`
-	TopP string `json:"topp,omitempty"`
-	// +kubebuilder:validation:Pattern=`^-?\d+(\.\d+)?$`
-	FreqPenalty string `json:"freqpenalty,omitempty"`
-	// +kubebuilder:validation:Pattern=`^-?\d+(\.\d+)?$`
-	PresPenalty string `json:"prespenalty,omitempty"`
-}
-
-// A file that is either part of the model or configures the engine
-type AIModelFile struct {
-	// Remote URI to get the file contents from if different from the model URI
-	// +optional
-	Uri string `json:"uri,omitempty"`
-	// Local path or name of the file. If the file URI is not set then this can be
-	// used with the model URI (see HugginFace hub downloaded).
-	Path string `json:"path"`
-}
-
 // Information needed to use a model
-// TODO: Uncomment or remove fields
 // NOTE: Remember to update the mergeModelSpecs function in resolve.go when adding fields
 type AIModelSpec struct {
 	Uri string `json:"uri,omitempty"`
-	//CacheUri          string			  `json:"cache,omitempty"`
-	//Framework        AIModelFramework    `json:"framework,omitempty"`
 	// +optional
 	Quantization AIModelQuantization `json:"quantization,omitempty"`
 	// +optional
 	DataType AIModelDataType `json:"dataType,omitempty"`
-	// +optional
-	Format AIModelFormat `json:"format,omitempty"`
-	//ParameterCount   string              `json:"parametercount,omitempty"`
-	//BitsPerParameter uint8               `json:"bitsperparameter,omitempty"`
-
-	//DefaultRuntimeParams *AIModelRuntimeParams `json:"defaultruntimeparams,omitempty"`
 
 	// Config file particular to the engine e.g. a LocalAI model specification
 	// +optional

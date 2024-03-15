@@ -28,9 +28,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	a1 "github.com/premAI-io/saas-controller/api/v1alpha1"
-	"github.com/premAI-io/saas-controller/controllers/aimodelmap"
-	"github.com/premAI-io/saas-controller/controllers/constants"
+	a1 "github.com/premAI-io/prem-operator/api/v1alpha1"
+	"github.com/premAI-io/prem-operator/controllers/aimodelmap"
+	"github.com/premAI-io/prem-operator/controllers/constants"
 )
 
 // AIModelMapReconciler reconciles a AIModelMap object
@@ -46,10 +46,6 @@ type AIModelMapReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the AIModelMap object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
@@ -64,7 +60,6 @@ func (r *AIModelMapReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if err == nil {
-		// TODO: check if the configmap is owned by an AIModelMap and if it is check it has the correct values
 		return ctrl.Result{}, nil
 	}
 

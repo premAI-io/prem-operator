@@ -17,22 +17,16 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/premAI-io/saas-controller/controllers/constants"
+	"github.com/premAI-io/prem-operator/controllers/constants"
 	v1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // AIDeploymentSpec defines the desired state of AIDeployment
 type AIDeploymentSpec struct {
 	Endpoint []Endpoint `json:"endpoint,omitempty"`
 	Engine   AIEngine   `json:"engine,omitempty"`
-
-	RateLimit      bool `json:"ratelimit,omitempty"`
-	Authentication bool `json:"auth,omitempty"`
 
 	// Optionally specify a list of environment variables used to start the engine
 	// +optional
@@ -172,7 +166,7 @@ type AIDeploymentStatus struct {
 	Status constants.Status `json:"status,omitempty"`
 	// Error message if the deployment failed, otherwise it is empty
 	// +optional
-	ErrMsg string           `json:"errMsg,omitempty"`
+	ErrMsg string `json:"errMsg,omitempty"`
 }
 
 //+kubebuilder:object:root=true

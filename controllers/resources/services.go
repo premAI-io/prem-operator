@@ -11,7 +11,6 @@ var (
 	KubeGenericLabelPrefix = "app.kubernetes.io"
 )
 
-// XXX: Probably doesn't do the correct thing for now
 func DesiredService(owner metav1.Object, name, namespace string, selector, labels, annotations map[string]string, port int32) *corev1.Service {
 	ports := []corev1.ServicePort{
 		{

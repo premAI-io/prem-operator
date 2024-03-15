@@ -1,7 +1,7 @@
-## Run Mistral on K3s with vLLM from saas-controller source code
+## Run Mistral on K3s with vLLM from prem-operator source code
 
 ### Overview
-This guide will help you to run Mistral on K3s with vLLM from saas-controller source code.
+This guide will help you to run Mistral on K3s with vLLM from prem-operator source code.
 Ubuntu 22.04.3 LTS was used as a host OS.
 
 ### Prerequisites
@@ -43,15 +43,15 @@ Ubuntu 22.04.3 LTS was used as a host OS.
 ```bash
 ./../scripts/install_k9s.sh
 ```
-8. Clone saas-controller repository
+8. Clone prem-operator repository
 ```bash
-git clone git@github.com:premAI-io/saas-controller.git
+git clone git@github.com:premAI-io/prem-operator.git
 ```
 9. Deploy AIDeployment CRD
 ```bash
 sudo make install
 ```
-10. Build saas-controller Docker image
+10. Build prem-operator Docker image
 ```bash
 sudo make docker-build
 ```
@@ -60,7 +60,7 @@ sudo make docker-build
 sudo docker save -o ./controller controller:latest
 sudo k3s ctr images import controller
 ```
-12. Deploy saas-controller
+12. Deploy prem-operator
 ```bash
 sudo make deploy
 ```

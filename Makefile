@@ -30,8 +30,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# premlabs.io/saas-operator-bundle:$VERSION and premlabs.io/saas-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= premlabs.io/saas-operator
+# premlabs.io/prem-operator-bundle:$VERSION and premlabs.io/prem-operator-catalog:$VERSION.
+IMAGE_TAG_BASE ?= premlabs.io/prem-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -269,7 +269,7 @@ docker-build: ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
-CLUSTER_NAME?="saas-controller-e2e"
+CLUSTER_NAME?="prem-operator-e2e"
 
 kind-setup:
 	CREATE_ONLY=true KUBE_VERSION=${KUBE_VERSION} $(ROOT_DIR)/script/test.sh
@@ -294,9 +294,9 @@ charts:
 	mkdir charts
 
 .PHONY: helm-controller
-helm-controller: manifests kustomize charts charts/saas-controller-chart
+helm-controller: manifests kustomize charts charts/prem-operator-chart
 
-charts/saas-controller-chart:
+charts/prem-operator-chart:
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | helmify -image-pull-secrets -crd-dir saas-controller-chart
-	mv saas-controller-chart charts
+	$(KUSTOMIZE) build config/default | helmify -image-pull-secrets -crd-dir prem-operator-chart
+	mv prem-operator-chart charts

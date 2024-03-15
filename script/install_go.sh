@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define Go version
-GO_VERSION="1.20"
+GO_VERSION="1.22"
 
 # Update the package index
 sudo apt-get update
