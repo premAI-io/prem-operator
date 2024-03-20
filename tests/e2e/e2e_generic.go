@@ -28,7 +28,7 @@ var _ = Describe("generic test", func() {
 	var startTime time.Time
 
 	model := []api.AIModel{{
-		ModelName: "zeroComets",
+		ModelName: "buns",
 	}}
 
 	JustBeforeEach(func() {
@@ -91,8 +91,8 @@ var _ = Describe("generic test", func() {
 								},
 								Containers: []corev1.Container{
 									{
-										Name:  "zns",
-										Image: "premai/zns-image-generation-service-comets:1.4.1",
+										Name:  "bun",
+										Image: "oven/bun",
 									},
 								},
 							},
@@ -112,8 +112,8 @@ var _ = Describe("generic test", func() {
 				}
 
 				c := deploymentPod.Spec.Containers[0]
-				g.Expect(c.Name).To(HavePrefix("zns"))
-				g.Expect(c.Image).To(Equal("premai/zns-image-generation-service-comets:1.4.1"))
+				g.Expect(c.Name).To(HavePrefix("bun"))
+				g.Expect(c.Image).To(Equal("oven/bun"))
 
 				g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("3Gi")))
 				g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
@@ -177,8 +177,8 @@ var _ = Describe("generic test", func() {
 									},
 									Containers: []corev1.Container{
 										{
-											Name:  "zns",
-											Image: "premai/zns-image-generation-service-comets:1.4.1",
+											Name:  "bun",
+											Image: "oven/bun",
 										},
 									},
 								},
@@ -200,7 +200,7 @@ var _ = Describe("generic test", func() {
 					g.Expect(deployment.Spec.Template.Spec.RuntimeClassName).To(Equal(&nvidia))
 
 					c := deployment.Spec.Template.Spec.Containers[0]
-					g.Expect(c.Name).To(HavePrefix("zns"))
+					g.Expect(c.Name).To(HavePrefix("bun"))
 					g.Expect(c.Resources.Requests["memory"]).To(Equal(resource.MustParse("200Gi")))
 					g.Expect(c.Resources.Requests["cpu"]).To(Equal(resource.MustParse("2")))
 					g.Expect(c.Resources.Requests["nvidia.com/gpu"]).To(Equal(resource.MustParse("3")))
