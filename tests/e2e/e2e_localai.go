@@ -76,6 +76,10 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
+						Options: map[string]string{
+							constants.ImageRepositoryKey: "localai/localai",
+							constants.ImageTagKey:        "master-ffmpeg-core",
+						},
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
@@ -206,6 +210,10 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
+						Options: map[string]string{
+							constants.ImageRepositoryKey: "localai/localai",
+							constants.ImageTagKey:        "master-ffmpeg-core",
+						},
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
@@ -284,6 +292,10 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
+						Options: map[string]string{
+							constants.ImageRepositoryKey: "localai/localai",
+							constants.ImageTagKey:        "master-ffmpeg-core",
+						},
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "phi-2.127.0.0.1.nip.io",
@@ -333,6 +345,10 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
+						Options: map[string]string{
+							constants.ImageRepositoryKey: "localai/localai",
+							constants.ImageTagKey:        "master-ffmpeg-core",
+						},
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
@@ -384,6 +400,10 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
+						Options: map[string]string{
+							constants.ImageRepositoryKey: "localai/localai",
+							constants.ImageTagKey:        "master-ffmpeg-core",
+						},
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
@@ -458,6 +478,10 @@ var _ = Describe("localai test", func() {
 				Spec: api.AIDeploymentSpec{
 					Engine: api.AIEngine{
 						Name: "localai",
+						Options: map[string]string{
+							constants.ImageRepositoryKey: "localai/localai",
+							constants.ImageTagKey:        "master-ffmpeg-core",
+						},
 					},
 					Endpoint: []api.Endpoint{{
 						Domain: "foo.127.0.0.1.nip.io",
