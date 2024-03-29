@@ -2,7 +2,7 @@
 
 ### Overview
 
-Prem Operator is a cutting-edge Kubernetes operator designed to streamline and enhance the deployment of AI models across diverse computational environments. Leveraging the power of LocalAI, vLLM, DeepSpeed-MII, NVIDIA Triton, and custom Docker images, Prem Operator introduces a robust framework for managing AI models with unparalleled efficiency and flexibility.
+Easy deploy AI models to Kubernetes using LocalAI, vLLM, DeepSpeed-MII, NVIDIA Triton and custom Docker images.
 
 ### Key Features
 

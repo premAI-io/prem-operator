@@ -14,9 +14,9 @@ We welcome all contributions, including bug fixes, feature requests, documentati
 
 ### New Features
 
-- For new features, we ask that you **open an issue first** to discuss your ideas with the project maintainers.
-- This ensures your time is well spent and aligns with the project's goals.
-- Once you've received input, you can start working on the feature following the "Getting Started" steps.
+- While we are open to direct Pull Requests (PRs) for new features, we recommend **opening an issue first** to discuss your ideas with the project maintainers.
+- This approach ensures that your efforts are in line with the project's goals and have a higher chance of being accepted.
+- However, if you prefer to submit a PR directly, please be aware that it is possible not be reviewed.
 
 
 ## Getting Started
