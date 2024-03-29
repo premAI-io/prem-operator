@@ -3,6 +3,8 @@
 ## Requirements
 
 - K8s cluster
+
+The Operator can be run without the following, but some features will be absent:
 - Helm
 - Ingress controller (e.g. Traefik)
 - Nvidia GPU Operator
@@ -14,8 +16,8 @@ Prem-Operator has three artifacts:
 1. [Prem-Operator Helm chart](https://hub.docker.com/r/premai/prem-operator-chart)
 
 ## Installation
-After setting up K8s cluster, install [Nvidia GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html) and [Traefik](https://doc.traefik.io/traefik/getting-started/install-traefik/#use-the-helm-chart) as an ingress controller.
-Note that Nvidia GPU Operator is required for GPU support and Traefik is required for handling ingress traffic.
+After setting up K8s cluster, you can optionally install [Nvidia GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html) and [Traefik](https://doc.traefik.io/traefik/getting-started/install-traefik/#use-the-helm-chart) as an ingress controller.
+Note that Nvidia GPU Operator is required for GPU support and Traefik can be used for handling ingress traffic.
 Now install Prem-Operator using Helm:
 ```bash
 $ helm install <my-release> oci://registry-1.docker.io/premai/prem-operator-chart
