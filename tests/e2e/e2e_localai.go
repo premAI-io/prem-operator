@@ -95,7 +95,7 @@ var _ = Describe("localai test", func() {
 			}
 		})
 
-		It("starts the API", func() {
+		It("starts the API", Label("slow"), func() {
 			By("starting the workload with the associated label")
 			Eventually(func(g Gomega) bool {
 				deploymentPod := &corev1.Pod{}
@@ -511,7 +511,7 @@ var _ = Describe("localai test", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("Creates a deployment with the expected volumes", func() {
+		It("Creates a deployment with the expected volumes", Label("slow"), func() {
 			By("creating the workload with the associated label")
 			Eventually(func(g Gomega) bool {
 				deployment := &appsv1.Deployment{}
