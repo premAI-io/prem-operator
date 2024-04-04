@@ -30,10 +30,13 @@ metadata:
 spec:
   engine:
     name: "localai"
+  # multiple models can be loaded together
   models:
-    - modelMapRef: 
+    - modelMapRef:
+        # name specified here is used by the model
         name: tinyllama-1.1b-chat-v0.1
         variant: q4-k-m
+    # uri is the name of the model as well
     - uri: "phi-2"
   endpoint:
     - domain: "tinyllama.127.0.0.1.nip.io"

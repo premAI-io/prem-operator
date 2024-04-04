@@ -4,7 +4,7 @@
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia && helm repo update
 
 # Install GPU Operator (arguments are for k3s)
-helm install --wait nvidiagpu -n gpu-operator --create-namespace \
+helm install --wait nvidia-gpu-operator -n nvidia-gpu-operator --create-namespace \
   --set toolkit.env[0].name=CONTAINERD_CONFIG \
   --set toolkit.env[0].value=/var/lib/rancher/k3s/agent/etc/containerd/config.toml \
   --set toolkit.env[1].name=CONTAINERD_SOCKET \

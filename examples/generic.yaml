@@ -19,8 +19,6 @@ metadata:
   name: generic-test
   namespace: default
 spec:
-  # single node instance
-  # no dashboard support
   engine:
     name: "generic"
   endpoint:

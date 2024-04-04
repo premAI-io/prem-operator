@@ -1,0 +1,20 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment
+metadata:
+  name: simple
+  namespace: default
+spec:
+  engine:
+    name: "localai"
+  endpoint:
+    - domain: "foo.127.0.0.1.nip.io"
+      port: 8080
+  models:
+    - uri: tinyllama-chat
+  deployment:
+    resources:
+      requests:
+        # cpu only deployment,
+        # as gpu resource is part of requests
+        cpu: 4
+        memory: "4Gi"

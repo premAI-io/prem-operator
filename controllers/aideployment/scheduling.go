@@ -35,33 +35,31 @@ func addTopologySpread(tmpl *v1.PodTemplateSpec) {
 	})
 }
 
-func neededGPUs(deploy a1.Deployment) (resource.Quantity, error) {
-	gpus := resource.MustParse("0")
+func neededNvidiaGPUs(deploy a1.Deployment) (resource.Quantity, error) {
+	zerogpus := resource.MustParse("0")
 
 	if deploy.Accelerator == nil {
 		if deploy.Resources.Requests == nil {
-			return gpus, nil
+			return zerogpus, nil
 		}
 
 		if _, ok := deploy.Resources.Requests[constants.NvidiaGPULabel]; ok {
-			return gpus, fmt.Errorf("deployment requests Nvidia GPU but no accelerator is specified")
+			return zerogpus, fmt.Errorf("deployment requests Nvidia GPU but no accelerator is specified")
 		} else {
-			return gpus, nil
+			return zerogpus, nil
 		}
 	}
 
 	// If you add non-Nvidia accelerators, remember to set the pod runtime class name
 	if deploy.Accelerator.Interface != a1.AcceleratorInterfaceCUDA {
-		return gpus, fmt.Errorf("unsupported accelerator interface: %s", deploy.Accelerator.Interface)
+		return zerogpus, fmt.Errorf("unsupported accelerator interface: %s", deploy.Accelerator.Interface)
 	}
 
 	if gpusSpec, ok := deploy.Resources.Requests[constants.NvidiaGPULabel]; ok {
 		return gpusSpec, nil
 	}
 
-	gpus.Add(resource.MustParse("1"))
-
-	return gpus, nil
+	return resource.MustParse("1"), nil
 }
 
 func findContainerEngine(appDeployment *appsv1.Deployment) (engineContainer *v1.Container) {
@@ -80,7 +78,7 @@ func AddSchedulingProperties(appDeployment *appsv1.Deployment, AIDeployment a1.A
 	pod := &appDeployment.Spec.Template.Spec
 	pod.NodeSelector = utils.MergeMaps(pod.NodeSelector, AIDeployment.Deployment.NodeSelector)
 
-	gpus, err := neededGPUs(AIDeployment.Deployment)
+	nvidiaGpus, err := neededNvidiaGPUs(AIDeployment.Deployment)
 	if err != nil {
 		return err
 	}
@@ -100,9 +98,9 @@ func AddSchedulingProperties(appDeployment *appsv1.Deployment, AIDeployment a1.A
 		AIDeployment.Deployment.Resources.Limits,
 	)
 
-	if !gpus.IsZero() {
-		engineContainer.Resources.Requests[constants.NvidiaGPULabel] = gpus
-		engineContainer.Resources.Limits[constants.NvidiaGPULabel] = gpus
+	if !nvidiaGpus.IsZero() {
+		engineContainer.Resources.Requests[constants.NvidiaGPULabel] = nvidiaGpus
+		engineContainer.Resources.Limits[constants.NvidiaGPULabel] = nvidiaGpus
 
 		if pod.RuntimeClassName == nil {
 			runtimeClassName := "nvidia"
