@@ -24,3 +24,10 @@ Dockerfile.cross
 *.swp
 *.swo
 *~
+
+# K3s VM testing
+script/vms/*.img
+script/vms/ssh_key*
+script/vms/serial.log
+script/vms/kubeconfig
+script/vms/user-data.yaml
