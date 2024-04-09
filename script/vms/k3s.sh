@@ -186,6 +186,8 @@ EOF
 setup_image() {
   echo "Setup Image"
 
+  docker save -o $IMG controller:latest
+
   export KUBECONFIG
 
   kubectl apply -f ./priv-shell.yaml --prune -l premai.io/util=shell
