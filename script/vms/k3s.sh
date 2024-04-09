@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/bash -eu
 
 set_vars() {
   echo "QEMU K3s Ports(SSH=${K3S_SSH_PORT:=2222} API=${K3S_API_PORT:=16443} web=${K3S_WEB_PORT:=8080})"
