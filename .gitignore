@@ -31,3 +31,5 @@ script/vms/ssh_key*
 script/vms/serial.log
 script/vms/kubeconfig
 script/vms/user-data.yaml
+script/vms/*.fd
+
