@@ -4,6 +4,7 @@ set_vars() {
   echo "QEMU K3s Ports(SSH=${K3S_SSH_PORT:=2222} API=${K3S_API_PORT:=16443} web=${K3S_WEB_PORT:=8080})"
   echo "Kubeconfig: ${KUBECONFIG:=kubeconfig}"
   echo "Image: ${IMG:=container.tar}"
+  echo "GPU PCI Address: ${VFIO_PCI:=none}"
 
   rund=${XDG_RUNTIME_DIR-/tmp/$USER}/prem-operator
   pid_file="${rund}/qemu.pid"
@@ -12,7 +13,6 @@ set_vars() {
   echo "Runtime dir: $rund"
 }
 
-# Function for 'boot-qemu-daemon' subcommand
 boot_qemu_daemon() {
   echo "Booting QEMU as a daemon..."
 
@@ -25,24 +25,35 @@ boot_qemu_daemon() {
 
   if [ $# -lt 1 ]; then
     QCOW=temp.img
+    UEFI_VARS=uefi-vars-temp.img
     rm -f temp.img
-    qemu-img create -F qcow2 -f qcow2 -b k3s-base.img temp.img
+    qemu-img create -F qcow2 -f qcow2 -b k3s-base.img $QCOW
+    qemu-img create -F qcow2 -f qcow2 -b uefi-vars-base.img $UEFI_VARS
   else
     QCOW=$1
+    UEFI_VARS=uefi-vars-base.img
+  fi
+
+  local opt_vars=""
+  if [ ! "$VFIO_PCI" = "none" ]; then
+    opt_vars="-device vfio-pci,host=$VFIO_PCI"
   fi
 
   qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
     -cpu host \
-    -m 8G \
+    -m 16G \
     -device virtio-net-pci,netdev=net0 \
     -netdev user,id=net0,hostfwd=tcp::${K3S_SSH_PORT}-:22,hostfwd=tcp::${K3S_API_PORT}-:6443,hostfwd=tcp::${K3S_WEB_PORT}-:80 \
     -drive if=virtio,format=qcow2,file=$QCOW,cache=none \
     -drive if=virtio,format=qcow2,file=seed.img \
+    -drive if=pflash,format=raw,readonly=on,file=OVMF_CODE_4M.fd \
+    -drive if=pflash,format=qcow2,file=$UEFI_VARS \
     -serial file:serial.log \
     -pidfile "$pid_file" \
     -display none \
-    -daemonize
+    -daemonize \
+    $opt_vars
 
   echo "Started QEMU waiting for SSH"
   local ssh_opts="-o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=5"
@@ -62,6 +73,8 @@ boot_qemu_daemon() {
       exit 1
     fi
 
+    # At points during bootup the connection is reset and SSH itself will not wait or retry
+    sleep 1
     echo "Retrying SSH..."
   done
 
@@ -71,15 +84,23 @@ boot_qemu_daemon() {
 boot_qemu() {
   echo "Booting QEMU..."
  
-  if [ $# -lt 1 ]; then
+   if [ $# -lt 1 ]; then
     QCOW=temp.img
+    UEFI_VARS=uefi-vars-temp.img
     rm -f temp.img
-    qemu-img create -F qcow2 -f qcow2 -b k3s-base.img temp.img
+    qemu-img create -F qcow2 -f qcow2 -b k3s-base.img $QCOW
+    qemu-img create -F qcow2 -f qcow2 -b uefi-vars-base.img $UEFI_VARS
   else
     QCOW=$1
+    UEFI_VARS=uefi-vars-base.img
   fi
 
-  qemu-system-x86_64 \
+  local opt_vars=""
+  if [ ! "$VFIO_PCI" = "none" ]; then
+    opt_vars="-device vifio-pci,host=$VFIO_PCI"
+  fi
+
+   qemu-system-x86_64 \
     -machine accel=kvm,type=q35 \
     -cpu host \
     -m 8G \
@@ -87,7 +108,10 @@ boot_qemu() {
     -netdev user,id=net0,hostfwd=tcp::${K3S_SSH_PORT}-:22,hostfwd=tcp::${K3S_API_PORT}-:6443,hostfwd=tcp::${K3S_WEB_PORT}-:80 \
     -drive if=virtio,format=qcow2,file=$QCOW,cache=none \
     -drive if=virtio,format=qcow2,file=seed.img \
-    -nographic
+    -drive if=pflash,format=raw,readonly=on,file=OVMF_CODE_4M.fd \
+    -drive if=pflash,format=qcow2,file=$UEFI_VARS \
+    -nographic \
+    $opt_vars
 }
 
 stop_qemu() {
@@ -152,6 +176,14 @@ install_k3s() {
 cloud_init() {
   echo "Could init"
 
+  if [ ! -f OVMF_CODE_4M.fd ]; then
+    cp /usr/share/OVMF/OVMF_CODE_4M.fd ./
+  fi
+
+  if [ ! -f OVMF_VARS_4M.fd ]; then
+    cp /usr/share/OVMF/OVMF_VARS_4M.fd ./
+  fi
+
   if [ ! -f ssh_key ]; then
     ssh-keygen -t ed25519 -f ssh_key -C "pou3" -N ""
   else
@@ -176,6 +208,7 @@ EOF
     echo "ubuntu-base.img exists, skipping download"
   fi
   qemu-img create -F qcow2 -f qcow2 -b ubuntu-base.img k3s-base.img 200G
+  qemu-img create -F raw -f qcow2 -b OVMF_VARS_4M.fd uefi-vars-base.img 4M
 
   ssh-keygen -R [0.0.0.0]:2222
   boot_qemu_daemon k3s-base.img
@@ -213,6 +246,23 @@ clean() {
   rm -r ./user-data.yaml
 }
 
+find_vfio_gpus() {
+  local lspci_output=$(lspci -vmm -k -d 10de:)
+
+  echo -e "\nFound GPUs with vfio-pci driver:"
+  echo "$lspci_output" | awk '
+  BEGIN { RS=""; FS="\n" }
+  {
+      for(i=1; i<=NF; i++) {
+          if($i ~ /Driver:.*vfio-pci/) {
+              print $0
+              print ""
+              next
+          }
+      }
+  }' | awk '/Slot/ { print $2 }'
+}
+
 show_help() {
   echo "Usage: $0 <command> [options]"
   echo ""
@@ -226,6 +276,7 @@ show_help() {
   echo "  setup-image       Add the operator container image to a running system"
   echo "  tests             Run e2e tests"
   echo "  clean             Clean up all created files"
+  echo "  find-vfio-gpus    Find VFIO GPUs"
   echo "  help              Show this help message"
 }
 
@@ -272,6 +323,9 @@ case "$1" in
     ;;
   clean)
     clean
+    ;;
+  find-vfio-gpus)
+    find_vfio_gpus "${@:2}"
     ;;
   help)
     show_help
