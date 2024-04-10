@@ -97,7 +97,7 @@ boot_qemu() {
 
   local opt_vars=""
   if [ ! "$VFIO_PCI" = "none" ]; then
-    opt_vars="-device vifio-pci,host=$VFIO_PCI"
+    opt_vars="-device vfio-pci,host=$VFIO_PCI"
   fi
 
    qemu-system-x86_64 \
