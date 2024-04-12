@@ -23,6 +23,24 @@ For developers and contributors interested in diving deeper into Prem Operator, 
 
 In summary, Prem Operator is an essential tool for developers and organizations looking to deploy AI models efficiently, flexibly, and scalably within Kubernetes environments. Its design philosophy prioritizes ease of use, performance optimization, and collaborative improvement, making it an ideal choice for cutting-edge AI deployments.
 
+## Useful Links
+
+- **Guides**
+    - [**ingress**](./docs/guides/ingress.md)
+    - [**Managed Clusters (GCP, AWS)**](./docs/guides/managed_cluster.md)
+    - [**Getting started**](./docs/getting_started.md)
+    - [**Deployment**](./docs/deployment.md)
+    - [**Developer**](./docs/developer_guide.md)
+    - [**vLLM**](./docs/vllm.md)
+- [**FAQ**](./docs/faq.md)
+- [**Contributing**](./docs/contributing.md)
+- [**Issues**](./docs/issues.md)
+- [**Troubleshooting**](./docs/troubleshooting.md)
+
+## Contact & Getting Help
+
+We'd love to hear from you! Feel free to create an issue or reach out to us on [Prem's Discord](https://discord.com/invite/kpKk6vYVAn) on the operator channel.
+
 ## License
 
 Operator SDK is under Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.
