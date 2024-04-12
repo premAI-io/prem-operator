@@ -1,0 +1,28 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
+metadata:
+  name: hermes
+  namespace: default
+spec:
+  engine:
+    name: "localai" 
+    options:
+      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+  endpoint:
+    - domain: "hermes.127.0.0.1.nip.io"
+      port: 8080 
+  models:
+    - uri: hermes-2-pro-mistral
+  deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
+ 
+    resources:
+      limits:
+        cpu: 64
+        memory: "128Gi"
+  env:
+    - name: "DEBUG"
+      value: "true"
