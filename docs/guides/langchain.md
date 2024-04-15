@@ -3,7 +3,7 @@
 ## Requirements
 
 - Kubernetes deployment with atleast 1 GPU based node, if you are using CPU based node consider using smaller models
-- Prem Operator v1.0.0 or above
+- Prem Operator v0.1.0 or above
 
 ## Setup
 
