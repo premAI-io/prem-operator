@@ -1,24 +1,18 @@
 apiVersion: premlabs.io/v1alpha1
-kind: AIDeployment 
+kind: AIDeployment
 metadata:
   name: simple
   namespace: default
 spec:
   # single node instance
-  # no dashboard support 
+  # no dashboard support
   engine:
-    name: "localai" 
+    name: "localai"
   endpoint:
     - domain: "foo.127.0.0.1.nip.io"
-      port: 8080 
+      port: 8080
   models:
     - uri: tinyllama-chat
-  service:
-    annotations:
-    labels:
-  ingress:
-    annotations:
-    labels:
   deployment:
     annotations:
     labels:
