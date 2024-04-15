@@ -10,6 +10,7 @@ spec:
       imageTag: v2.12.4-cublas-cuda12-ffmpeg
   endpoint:
     - port: 8080 
+      domain: "hermes.127.0.0.1.nip.io"
   models:
     - uri: hermes-2-pro-mistral
   deployment:
