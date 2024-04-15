@@ -28,6 +28,7 @@ https://github.com/richiejp/prem-operator/assets/988098/0f06b254-a1a0-4ae5-815a-
 ### 🔗 Useful Links
 
 - **Guides**
+    - [**Langchain**](./docs/guides/langchain.md)
     - [**ingress**](./docs/guides/ingress.md)
     - [**Managed Clusters (GCP, AWS)**](./docs/guides/managed_cluster.md)
     - [**Getting started**](./docs/getting_started.md)
