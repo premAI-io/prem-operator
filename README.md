@@ -1,10 +1,10 @@
-## Prem Operator: Advanced AI Model Deployment on Kubernetes
+## 📡 Prem Operator: On premise AI with Kubernetes
 
-### Overview
+### 🗺 Overview
 
 Deploy AI models and apps to Kubernetes without hitting every pitfall.
 
-### Quick Start
+### 🚀 Quick Start
 
 Deploy the operator and chat with Hermes in 2 or 3 steps. Note that you need a NVIDIA GPU with 8GB of RAM.
 
@@ -28,17 +28,18 @@ https://github.com/richiejp/prem-operator/assets/988098/0f06b254-a1a0-4ae5-815a-
 ### 🔗 Useful Links
 
 - **Guides**
-    - [**Langchain**](./docs/guides/langchain.md)
-    - [**ingress**](./docs/guides/ingress.md)
-    - [**Managed Clusters (GCP, AWS)**](./docs/guides/managed_cluster.md)
-    - [**Getting started**](./docs/getting_started.md)
-    - [**Deployment**](./docs/deployment.md)
-    - [**Developer**](./docs/developer_guide.md)
-    - [**vLLM**](./docs/vllm.md)
-- [**FAQ**](./docs/faq.md)
-- [**Contributing**](./docs/contributing.md)
-- [**Issues**](./docs/issues.md)
-- [**Troubleshooting**](./docs/troubleshooting.md)
+    - [🦜️🔗**Langchain**](./docs/guides/langchain.md)
+    - [🧩**Ingress**](./docs/guides/ingress.md)
+    - [🌐**Managed Clusters (GCP, AWS)**](./docs/guides/managed_cluster.md)
+    - [📜**Getting started**](./docs/getting_started.md)
+    - [📦**Deployment**](./docs/deployment.md)
+    - [👩‍💻**Developer**](./docs/developer_guide.md)
+    - [🧪**vLLM**](./docs/vllm.md)
+- **Topics**
+    - [🔍**Frequently Asked Questions**](./docs/faq.md)
+    - [🤝**Contributing**](./docs/contributing.md)
+    - [🎗️**Issues**](./docs/issues.md)
+    - [🔧**Troubleshooting**](./docs/troubleshooting.md)
 
 ### 💌 Contact & Getting Help
 
