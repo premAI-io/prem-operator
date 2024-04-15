@@ -107,7 +107,7 @@ while True:
     print(f"Assistant: {result}")
 ```
 
-- Run the project to the demo in action.
+- Run the project to see the demo in action.
 
 ```bash
 python demo.py
