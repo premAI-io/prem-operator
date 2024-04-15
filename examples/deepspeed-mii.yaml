@@ -1,0 +1,14 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment
+metadata:
+  name: deepspeed-mii
+spec:
+  engine:
+    name: deepspeed-mii
+  models:
+    - uri: microsoft/phi-2
+  deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 8
