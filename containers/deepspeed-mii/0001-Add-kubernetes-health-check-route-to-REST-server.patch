@@ -1,0 +1,27 @@
+From f5ef85e1ef2189bc04c0b7ae147b147651376885 Mon Sep 17 00:00:00 2001
+From: Richard Palethorpe <io@richiejp.com>
+Date: Fri, 26 Jan 2024 12:50:37 +0000
+Subject: [PATCH] Add kubernetes health check route to REST server
+
+---
+ mii/grpc_related/restful_gateway.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/mii/grpc_related/restful_gateway.py b/mii/grpc_related/restful_gateway.py
+index a5f1692..5b93fea 100644
+--- a/mii/grpc_related/restful_gateway.py
++++ b/mii/grpc_related/restful_gateway.py
+@@ -40,6 +40,10 @@ def createRestfulGatewayApp(deployment_name, server_thread):
+         threading.Thread(target=shutdown, args=(server_thread, )).start()
+         return "Shutting down RESTful API gateway server"
+ 
++    @app.route("/healthz", methods=["GET"])
++    def healthz():
++        return "ok"
++
+     api = Api(app)
+     path = "/{}/{}".format(RESTFUL_API_PATH, deployment_name)
+     api.add_resource(RestfulGatewayService, path)
+-- 
+2.42.0
+
