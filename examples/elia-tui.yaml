@@ -1,0 +1,90 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIModelMap
+metadata:
+  name: phi-2-chat
+spec:
+  localai:
+      - variant: base
+        uri: "l3utterfly/phi-2-layla-v1-chatml-gguf"
+        # The LocalAI model description. Note that the model is called gpt-4-turbo because Elia has the models hardcoded at the time of writting
+        engineConfigFile: |
+          name: gpt-4-turbo
+          mmap: true
+          parameters:
+            model: huggingface://l3utterfly/phi-2-layla-v1-chatml-gguf/phi-2-layla-v1-chatml-Q8_0.gguf
+
+          template:
+            chat_message: |
+              <|im_start|>{{if eq .RoleName "assistant"}}assistant{{else if eq .RoleName "system"}}system{{else if eq .RoleName "user"}}user{{end}}
+              {{if .Content}}{{.Content}}{{end}}
+              <|im_end|>
+            chat: |
+              {{.Input}}
+              <|im_start|>assistant
+            completion: |
+              {{.Input}}
+          context_size: 4096
+          f16: true
+          stopwords:
+          - <|im_end|>
+          - <dummy32000>
+          usage: |
+                curl http://localhost:8080/v1/chat/completions -H "Content-Type: application/json" -d '{
+                    "model": "gpt-4-turbo",
+                    "messages": [{"role": "user", "content": "How are you doing?", "temperature": 0.1}]
+                }'
+---
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
+metadata:
+  name: phi-2-chat
+  namespace: default
+spec:
+  engine:
+    name: "localai" 
+    options:
+      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+  endpoint:
+    - port: 8080 
+      domain: "phi-2-chat.127.0.0.1.nip.io"
+  models:
+    - modelMapRef:
+        name: phi-2-chat
+        variant: base
+  deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
+    resources:
+      requests:
+        cpu: 4
+        memory: 8Gi
+      limits:
+        cpu: 32
+        memory: "16Gi"
+---          
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elia
+  template:
+    metadata:
+      labels:
+        app: elia
+    spec:
+      containers:
+      - name: elia
+        image: premai/elia
+        env:
+        - name: OPENAI_API_BASE
+          value: "http://phi-2-chat:8080"
+        ports:
+        - containerPort: 3000
+        stdin: true
+        tty: true
