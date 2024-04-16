@@ -55,4 +55,3 @@ Feel free to create an issue here or reach out to us on [Prem's Discord](https:/
 
 Prem-Operator is under Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.
 
-Libraries we use 
