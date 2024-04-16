@@ -25,7 +25,13 @@ LocalAI downloads the model.
 
 https://github.com/richiejp/prem-operator/assets/988098/0f06b254-a1a0-4ae5-815a-ed84998f5c89
 
-### 🔗 Useful Links
+### 💌 Get in touch, or Wanna Contribute
+
+Feel free to create an issue here or reach out to us on [Prem's Discord](https://discord.com/invite/kpKk6vYVAn) on the "#operator" channel.
+
+💖💖 We'd love to hear from you! 💖💖
+
+### 🔗 Links
 
 - **Guides**
     - [🦜️🔗**Langchain**](./docs/guides/langchain.md)
@@ -45,11 +51,8 @@ https://github.com/richiejp/prem-operator/assets/988098/0f06b254-a1a0-4ae5-815a-
 
 ![simplified architecture diagram prem-operator](https://github.com/premAI-io/prem-operator/assets/19930870/0b800db2-2c04-4b69-9672-d9f3c982507d)
 
-### 💌 Contact & Getting Help
-
-We'd love to hear from you! Feel free to create an issue or reach out to us on [Prem's Discord](https://discord.com/invite/kpKk6vYVAn) on the operator channel.
-
 ### 📝 License
 
-Operator SDK is under Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.
+Prem-Operator is under Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.
 
+Libraries we use 
