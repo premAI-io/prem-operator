@@ -43,7 +43,7 @@ https://github.com/richiejp/prem-operator/assets/988098/0f06b254-a1a0-4ae5-815a-
 
 ### Simplified Architecture Diagram 
 
-![simpligied architecture diagram prem-operator](https://github.com/premAI-io/prem-operator/assets/19930870/0b800db2-2c04-4b69-9672-d9f3c982507d)
+![simplified architecture diagram prem-operator](https://github.com/premAI-io/prem-operator/assets/19930870/0b800db2-2c04-4b69-9672-d9f3c982507d)
 
 ### 💌 Contact & Getting Help
 
