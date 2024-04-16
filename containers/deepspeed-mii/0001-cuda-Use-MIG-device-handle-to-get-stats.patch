@@ -1,0 +1,37 @@
+From 03d35279f22ca6b5efa8a1d8f5a001f5896f238a Mon Sep 17 00:00:00 2001
+From: Richard Palethorpe <io@richiejp.com>
+Date: Fri, 26 Jan 2024 09:08:07 +0000
+Subject: [PATCH] cuda: Use MIG device handle to get stats
+
+If we are using MIG then we don't have permission to access the
+overall device stats. We also don't care about the overall free
+memory.
+
+This uses the UUID passed to the container, which is the MIG device
+when MIG is enabled and the GPU when not, to get the correct type of
+handle.
+---
+ accelerator/cuda_accelerator.py | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/accelerator/cuda_accelerator.py b/accelerator/cuda_accelerator.py
+index 2d74daec..59c6d5e6 100644
+--- a/accelerator/cuda_accelerator.py
++++ b/accelerator/cuda_accelerator.py
+@@ -170,10 +170,9 @@ class CUDA_Accelerator(DeepSpeedAccelerator):
+ 
+     def available_memory(self, device_index=None):
+         if pynvml:
+-            if device_index is None:
+-                device_index = self.current_device()
+-            handle = pynvml.nvmlDeviceGetHandleByIndex(self._get_nvml_gpu_id(device_index))
+-            info = pynvml.nvmlDeviceGetMemoryInfo(handle)
++            uuid = os.environ['NVIDIA_VISIBLE_DEVICES']
++            mhandle = pynvml.nvmlDeviceGetHandleByUUID(uuid)
++            info = pynvml.nvmlDeviceGetMemoryInfo(mhandle)
+             return info.free
+         else:
+             return self.total_memory(device_index) - self.memory_allocated(device_index)
+-- 
+2.42.0
+

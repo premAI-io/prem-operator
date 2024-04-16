@@ -1,0 +1,67 @@
+name: Docker Image
+
+on:
+  push:
+    tags:
+      - '*/v*'
+  pull_request:
+    branches:
+      - 'main'
+env:
+  IMAGE_DOMAIN: premai
+jobs:
+  build-and-push:
+    runs-on: Ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # ADD NEW Dockerfile directories HERE!!!
+        contexts: [deepspeed-mii]
+    steps:
+      - name: Install dependencies
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        run: |
+          sudo apt-get update \
+          && sudo apt-get install -y software-properties-common \
+          && sudo apt-get update \
+          && sudo add-apt-repository -y ppa:git-core/ppa \
+          && sudo apt-get update \
+          && sudo apt-get install -y git wget make curl
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - uses: actions/setup-go@v4
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        with:
+          go-version: '>=1.17.0'
+      - name: Checkout repository
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        uses: actions/checkout@v4
+      - name: Get tags
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        run: git fetch --tags origin --force
+      - name: Log in to the Container registry
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Extract metadata (tags, labels) for Docker
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.IMAGE_DOMAIN }}/${{ matrix.contexts }}
+          tags: |
+            type=ref,event=branch,suffix=-{{date 'YYYYMMDDHHmmss'}}
+            type=sha,suffix=-{{date 'YYYYMMDDHHmmss'}}
+            type=match,pattern=${{ matrix.contexts }}/v(\d+.\d+.\d+),group=1
+          flavor: |
+            prefix=
+            suffix=
+      - name: Build and push Docker image
+        if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: ./containers/${{ matrix.contexts }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
