@@ -41,6 +41,11 @@ https://github.com/richiejp/prem-operator/assets/988098/0f06b254-a1a0-4ae5-815a-
     - [🎗️**Issues**](./docs/issues.md)
     - [🔧**Troubleshooting**](./docs/troubleshooting.md)
 
+### Simplified Architecture Diagram 
+
+![simpligied architecture diagram prem-operator](https://github.com/premAI-io/prem-operator/assets/19930870/e2ddcb82-7c7d-457e-ade7-12a287212d2d)
+
+
 ### 💌 Contact & Getting Help
 
 We'd love to hear from you! Feel free to create an issue or reach out to us on [Prem's Discord](https://discord.com/invite/kpKk6vYVAn) on the operator channel.
