@@ -33,6 +33,8 @@ Feel free to create an issue here or reach out to us on [Prem's Discord](https:/
 
 ### 🔗 Links
 
+- **Quick Starts**
+    - [🌿+φ**Elia TUI** + **Phi-2**](./docs/guides/elia.md)
 - **Guides**
     - [🦜️🔗**Langchain**](./docs/guides/langchain.md)
     - [🧩**Ingress**](./docs/guides/ingress.md)
