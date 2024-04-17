@@ -8,7 +8,7 @@ spec:
         uri: "l3utterfly/phi-2-layla-v1-chatml-gguf"
         # The LocalAI model description. Note that the model is called gpt-4-turbo because Elia has the models hardcoded at the time of writting
         engineConfigFile: |
-          name: gpt-4-turbo
+          name: gpt-4-1106-preview
           mmap: true
           parameters:
             model: huggingface://l3utterfly/phi-2-layla-v1-chatml-gguf/phi-2-layla-v1-chatml-Q8_0.gguf
@@ -30,7 +30,7 @@ spec:
           - <dummy32000>
           usage: |
                 curl http://localhost:8080/v1/chat/completions -H "Content-Type: application/json" -d '{
-                    "model": "gpt-4-turbo",
+                    "model": "gpt-4-1106-preview",
                     "messages": [{"role": "user", "content": "How are you doing?", "temperature": 0.1}]
                 }'
 ---
