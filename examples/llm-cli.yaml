@@ -1,0 +1,69 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
+metadata:
+  name: hermes
+  namespace: default
+spec:
+  engine:
+    name: "localai" 
+    options:
+      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+  endpoint:
+    - port: 8080 
+      domain: "hermes.127.0.0.1.nip.io"
+  models:
+    - uri: hermes-2-pro-mistral
+  deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
+    resources:
+      requests:
+        cpu: 4
+        memory: 16Gi
+      limits:
+        cpu: 64
+        memory: "128Gi"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-cli-conf
+data:
+  extra-openai-models.yaml: |
+    - model_id: hermes-2-pro-mistral
+      model_name: hermes-2-pro-mistral
+      api_base: http://localhost:8080
+  default_model.text: |
+    hermes-2-pro-mistral
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-cli
+  template:
+    metadata:
+      labels:
+        app: llm-cli
+    spec:
+      containers:
+      - name: llm-cli
+        image: premai/llm-cli
+        env:
+        - name: OPENAI_API_BASE
+          value: "http://hermes:8080"
+        stdin: true
+        tty: true
+        volumeMounts:
+        - name: conf
+          mountPath: /root/.config/io.datasette.llm/
+      volumes:
+      - name: conf
+        configMap:
+          name: llm-cli-conf
