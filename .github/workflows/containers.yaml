@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         # ADD NEW Dockerfile directories HERE!!!
-        contexts: [deepspeed-mii, elia]
+        contexts: [deepspeed-mii, elia, llm-cli]
     steps:
       - uses: actions/setup-go@v4
         if: startsWith(github.ref, format('refs/tags/{0}/v', matrix.contexts))
