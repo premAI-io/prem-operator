@@ -1,0 +1,135 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIModelMap
+metadata:
+  name: llama-3-70b-gguf
+spec:
+  localai:
+      - variant: base
+        uri: "NousResearch/Meta-Llama-3-70B-Instruct-GGUF"
+        engineConfigFile: |
+          name: gpt-4-1106-preview
+          mmap: true
+          parameters:
+            model: huggingface://NousResearch/Meta-Llama-3-70B-Instruct-GGUF/Meta-Llama-3-70B-Instruct-Q4_K_M.gguf
+          context_size: 8196
+          template:
+            chat_message: |
+              <|start_header_id|>{{.RoleName}}<|end_header_id|>
+
+              {{ .Content }}<|eot_id|>
+            chat: |
+              {{ .Input }}
+              <|start_header_id|>assistant<|end_header_id|>
+---
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
+metadata:
+  name: llama-3-70b-gguf
+  namespace: default
+spec:
+  engine:
+    name: "localai" 
+    options:
+      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+  endpoint:
+    - port: 8080 
+      domain: "llama-3-70b-gguf.127.0.0.1.nip.io"
+  models:
+    - modelMapRef:
+        name: llama-3-70b-gguf
+        variant: base
+  deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
+    startupProbe:
+      initialDelaySeconds: 300
+      periodSeconds: 1
+      timeoutSeconds: 5
+      failureThreshold: 300
+    resources:
+      requests:
+        cpu: 4
+        memory: 64Gi
+      limits:
+        cpu: 32
+        memory: "128Gi"
+  env:
+    - name: "DEBUG"
+      value: "true"
+---          
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elia
+  template:
+    metadata:
+      labels:
+        app: elia
+    spec:
+      containers:
+      - name: elia
+        image: premai/elia
+        env:
+        - name: OPENAI_API_BASE
+          value: "http://llama-3-70b-gguf:8080"
+        ports:
+        - containerPort: 3000
+        stdin: true
+        tty: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llama-3-cli-conf
+data:
+  extra-openai-models.yaml: |
+    - model_id: gpt-4-1106-preview
+      model_name: gpt-4-1106-preview
+      api_base: http://llama-3-70b-gguf:8080
+  default_model.txt: |
+    gpt-4-1106-preview
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-3-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llama-3-cli
+  template:
+    metadata:
+      labels:
+        app: llama-3-cli
+    spec:
+      initContainers:
+      - name: cp-conf
+        image: premai/llm-cli
+        command: ["sh", "-c", "cp -v /conf/* /root/.config/io.datasette.llm/"]
+        volumeMounts:
+        - name: conf
+          mountPath: /conf/
+        - name: data
+          mountPath: /root/.config/io.datasette.llm/
+      containers:
+      - name: llama-3-cli
+        image: premai/llm-cli
+        stdin: true
+        tty: true
+        volumeMounts:
+        - name: data
+          mountPath: /root/.config/io.datasette.llm/
+      volumes:
+      - name: conf
+        configMap:
+          name: llama-3-cli-conf
+      - name: data
+        emptyDir: {}
