@@ -34,8 +34,8 @@ data:
   extra-openai-models.yaml: |
     - model_id: hermes-2-pro-mistral
       model_name: hermes-2-pro-mistral
-      api_base: http://localhost:8080
-  default_model.text: |
+      api_base: http://hermes:8080
+  default_model.txt: |
     hermes-2-pro-mistral
 ---
 apiVersion: apps/v1
@@ -52,18 +52,26 @@ spec:
       labels:
         app: llm-cli
     spec:
+      initContainers:
+      - name: cp-conf
+        image: premai/llm-cli
+        command: ["sh", "-c", "cp -v /conf/* /root/.config/io.datasette.llm/"]
+        volumeMounts:
+        - name: conf
+          mountPath: /conf/
+        - name: data
+          mountPath: /root/.config/io.datasette.llm/
       containers:
       - name: llm-cli
         image: premai/llm-cli
-        env:
-        - name: OPENAI_API_BASE
-          value: "http://hermes:8080"
         stdin: true
         tty: true
         volumeMounts:
-        - name: conf
+        - name: data
           mountPath: /root/.config/io.datasette.llm/
       volumes:
       - name: conf
         configMap:
           name: llm-cli-conf
+      - name: data
+        emptyDir: {}
