@@ -1,0 +1,79 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIModelMap
+metadata:
+  name: llama3-gguf
+spec:
+  localai:
+      - variant: base
+        uri: "QuantFactory/Meta-Llama-3-8B-Instruct-GGUF"
+        engineConfigFile: |
+          name: gpt-4-1106-preview
+          mmap: true
+          parameters:
+            model: huggingface://QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct.Q8_0.gguf
+          template:
+            chat_message: |
+              <|start_header_id|>{{.RoleName}}<|end_header_id|>
+
+              {{ .Content }}<|eot_id|>
+            chat: |
+              {{ .Input }}
+              <|start_header_id|>assistant<|end_header_id|>
+---
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment 
+metadata:
+  name: llama3-gguf
+  namespace: default
+spec:
+  engine:
+    name: "localai" 
+    options:
+      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+  endpoint:
+    - port: 8080 
+      domain: "llama3.127.0.0.1.nip.io"
+  models:
+    - modelMapRef:
+        name: llama3-gguf
+        variant: base
+  deployment:
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
+    resources:
+      requests:
+        cpu: 4
+        memory: 8Gi
+      limits:
+        cpu: 32
+        memory: "16Gi"
+  env:
+    - name: "DEBUG"
+      value: "true"
+---          
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elia
+  template:
+    metadata:
+      labels:
+        app: elia
+    spec:
+      containers:
+      - name: elia
+        image: premai/elia
+        env:
+        - name: OPENAI_API_BASE
+          value: "http://llama3-gguf:8080"
+        ports:
+        - containerPort: 3000
+        stdin: true
+        tty: true
