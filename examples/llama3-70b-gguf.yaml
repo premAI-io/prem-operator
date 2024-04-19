@@ -58,23 +58,23 @@ spec:
   env:
     - name: "DEBUG"
       value: "true"
----          
+--- 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: elia
+  name: llama-3-tui
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: elia
+      app: llama-3-tui
   template:
     metadata:
       labels:
-        app: elia
+        app: llama-3-tui
     spec:
       containers:
-      - name: elia
+      - name: llama-3-tui
         image: premai/elia
         env:
         - name: OPENAI_API_BASE

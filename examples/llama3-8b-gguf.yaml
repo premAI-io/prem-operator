@@ -1,7 +1,7 @@
 apiVersion: premlabs.io/v1alpha1
 kind: AIModelMap
 metadata:
-  name: llama-3-8b-gguf.yaml
+  name: llama-3-8b-gguf
 spec:
   localai:
       - variant: base
@@ -24,7 +24,7 @@ spec:
 apiVersion: premlabs.io/v1alpha1
 kind: AIDeployment 
 metadata:
-  name: llama-3-8b-gguf.yaml
+  name: llama-3-8b-gguf
   namespace: default
 spec:
   engine:
@@ -36,7 +36,7 @@ spec:
       domain: "llama-3-8b-gguf.127.0.0.1.nip.io"
   models:
     - modelMapRef:
-        name: llama-3-8b-gguf.yaml
+        name: llama-3-8b-gguf
         variant: base
   deployment:
     accelerator:
@@ -53,28 +53,78 @@ spec:
   env:
     - name: "DEBUG"
       value: "true"
----          
+--- 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: elia
+  name: llama-3-tui
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: elia
+      app: llama-3-tui
   template:
     metadata:
       labels:
-        app: elia
+        app: llama-3-tui
     spec:
       containers:
-      - name: elia
+      - name: llama-3-tui
         image: premai/elia
         env:
         - name: OPENAI_API_BASE
-          value: "http://llama-3-8b-gguf.yaml:8080"
+          value: "http://llama-3-8b-gguf:8080"
         ports:
         - containerPort: 3000
         stdin: true
         tty: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llama-3-cli-conf
+data:
+  extra-openai-models.yaml: |
+    - model_id: gpt-4-1106-preview
+      model_name: gpt-4-1106-preview
+      api_base: http://llama-3-8b-gguf:8080
+  default_model.txt: |
+    gpt-4-1106-preview
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-3-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llama-3-cli
+  template:
+    metadata:
+      labels:
+        app: llama-3-cli
+    spec:
+      initContainers:
+      - name: cp-conf
+        image: premai/llm-cli
+        command: ["sh", "-c", "cp -v /conf/* /root/.config/io.datasette.llm/"]
+        volumeMounts:
+        - name: conf
+          mountPath: /conf/
+        - name: data
+          mountPath: /root/.config/io.datasette.llm/
+      containers:
+      - name: llama-3-cli
+        image: premai/llm-cli
+        stdin: true
+        tty: true
+        volumeMounts:
+        - name: data
+          mountPath: /root/.config/io.datasette.llm/
+      volumes:
+      - name: conf
+        configMap:
+          name: llama-3-cli-conf
+      - name: data
+        emptyDir: {}
