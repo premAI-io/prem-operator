@@ -5,12 +5,12 @@ metadata:
 spec:
   localai:
       - variant: base
-        uri: "QuantFactory/Meta-Llama-3-8B-Instruct-GGUF"
+        uri: "huggingface://bartowski/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct-Q8_0.gguf"
         engineConfigFile: |
           name: gpt-4-1106-preview
           mmap: true
           parameters:
-            model: huggingface://QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct.Q8_0.gguf
+            model: huggingface://bartowski/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct-Q8_0.gguf
           context_size: 8196
           template:
             chat_message: |
@@ -30,7 +30,7 @@ spec:
   engine:
     name: "localai" 
     options:
-      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+      imageTag: sha-220958a-cublas-cuda12-ffmpeg-core
   endpoint:
     - port: 8080 
       domain: "llama-3-8b-gguf.127.0.0.1.nip.io"
