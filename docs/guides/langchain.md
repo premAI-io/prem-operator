@@ -42,9 +42,17 @@ spec:
         template:
             spec:
                 containers:
-                    - name: "ai-model-7b"
-                      image: modelzai/llm-llama-7b:latest # GPU requirements: A100(40GB)
-                      # alternatively use, modelzai/llm-bloomz-560m:latest (even works on CPU)
+                    - name: "ai-model"
+                      image: swarnimarun/llama-server:latest-cuda
+                      # GPU requirements: T4(16GB)
+                      # For CPU : "swarnimarun/llama-server:latest" - 16GB
+                      args:
+                        - "-m"
+                        - "lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF"
+                        - "-g"
+                        - "33"
+                        - "-q"
+                        - "q8"
         accelerator:
             interface: "CUDA"
             minVersion:
@@ -52,13 +60,13 @@ spec:
         resources:
             limits:
                 cpu: "1"
-                memory: "16Gi" # a decent amount of RAM is required for loading the model as well
+                memory: "2Gi" # some amount of RAM is required for loading the model as well, for cpu use atleast 16GB of RAM
 ```
 
 - Port forward the deployment service. If you don't have a proper ingress setup for your cluster.
 
 ```bash
-kubectl port-forward service/aideployment 8000:8000
+kubectl port-forward service/aideployment 80:8000
 ```
 
 - Now locally, install the required libraries.
@@ -73,11 +81,11 @@ pip install langchain openai
 import os
 import openai
 
-# note: we port-forwarded the service to 8000
-openai.api_base="http://localhost:8000"
+# note: we port-forwarded the service to 80 aka http
+openai.api_base="http://localhost"
 # if you have ingress setup then use your domain name
 # you can also modify the port to use http(s) port itself
-# openai.api_base="https://<DOMAIN-NAME>.tld:8000" 
+# openai.api_base="https://<DOMAIN-NAME>.tld" 
 openai.api_key = "any"
 ```
 
