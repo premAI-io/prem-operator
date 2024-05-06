@@ -60,7 +60,9 @@ spec:
         resources:
             limits:
                 cpu: "1"
-                memory: "2Gi" # some amount of RAM is required for loading the model as well, for cpu use atleast 16GB of RAM
+                memory: "2Gi" # loading of model maybe slow or buggy for large models with low RAM
+                # for faster initial loading of large models increase to at least 8GB of RAM
+                # if you want to use CPU inference, use at least 16GB of RAM for 7B models
 ```
 
 - Port forward the deployment service. If you don't have a proper ingress setup for your cluster.
