@@ -5,13 +5,18 @@ metadata:
 spec:
   localai:
       - variant: base
-        uri: "NousResearch/Meta-Llama-3-70B-Instruct-GGUF"
+        uri: "huggingface://bartowski/Meta-Llama-3-70B-Instruct-GGUF/Meta-Llama-3-70B-Instruct-Q5_K_M.gguf"
         engineConfigFile: |
           name: gpt-4-1106-preview
           mmap: true
           parameters:
-            model: huggingface://NousResearch/Meta-Llama-3-70B-Instruct-GGUF/Meta-Llama-3-70B-Instruct-Q4_K_M.gguf
+            model: huggingface://bartowski/Meta-Llama-3-70B-Instruct-GGUF/Meta-Llama-3-70B-Instruct-Q5_K_M.gguf
           context_size: 8196
+          f16: true
+          stopwords:
+          - <|im_end|>
+          - <dummy32000>
+          - "<|eot_id|>"
           template:
             chat_message: |
               <|start_header_id|>{{.RoleName}}<|end_header_id|>
@@ -30,7 +35,7 @@ spec:
   engine:
     name: "localai" 
     options:
-      imageTag: v2.12.4-cublas-cuda12-ffmpeg
+      imageTag: sha-b52ff12-cublas-cuda12-ffmpeg-core
   endpoint:
     - port: 8080 
       domain: "llama-3-70b-gguf.127.0.0.1.nip.io"

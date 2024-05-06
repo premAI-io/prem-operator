@@ -12,6 +12,11 @@ spec:
           parameters:
             model: huggingface://bartowski/Meta-Llama-3-8B-Instruct-GGUF/Meta-Llama-3-8B-Instruct-Q8_0.gguf
           context_size: 8196
+          f16: true
+          stopwords:
+          - <|im_end|>
+          - <dummy32000>
+          - "<|eot_id|>"
           template:
             chat_message: |
               <|start_header_id|>{{.RoleName}}<|end_header_id|>
@@ -30,7 +35,7 @@ spec:
   engine:
     name: "localai" 
     options:
-      imageTag: sha-220958a-cublas-cuda12-ffmpeg-core
+      imageTag: sha-b52ff12-cublas-cuda12-ffmpeg-core
   endpoint:
     - port: 8080 
       domain: "llama-3-8b-gguf.127.0.0.1.nip.io"
