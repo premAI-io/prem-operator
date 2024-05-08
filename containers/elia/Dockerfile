@@ -1,9 +1,6 @@
-FROM ubuntu:latest
+FROM python:3-alpine
 
-RUN apt update -y
-RUN apt install -y --no-install-recommends pipx git-core
-RUN pipx ensurepath
-RUN pipx install git+https://github.com/darrenburns/elia
+RUN pip install elia-chat==1.7.0
 ENV OPENAI_API_KEY=none
 ENV PATH=$PATH:/root/.local/bin
 
