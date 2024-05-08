@@ -1,40 +1,4 @@
 apiVersion: premlabs.io/v1alpha1
-kind: AIModelMap
-metadata:
-  name: phi-2-chat
-spec:
-  localai:
-      - variant: base
-        uri: "l3utterfly/phi-2-layla-v1-chatml-gguf"
-        # The LocalAI model description. Note that the model is called gpt-4-turbo because Elia has the models hardcoded at the time of writting
-        engineConfigFile: |
-          name: gpt-4-1106-preview
-          mmap: true
-          parameters:
-            model: huggingface://l3utterfly/phi-2-layla-v1-chatml-gguf/phi-2-layla-v1-chatml-Q8_0.gguf
-
-          template:
-            chat_message: |
-              <|im_start|>{{if eq .RoleName "assistant"}}assistant{{else if eq .RoleName "system"}}system{{else if eq .RoleName "user"}}user{{end}}
-              {{if .Content}}{{.Content}}{{end}}
-              <|im_end|>
-            chat: |
-              {{.Input}}
-              <|im_start|>assistant
-            completion: |
-              {{.Input}}
-          context_size: 4096
-          f16: true
-          stopwords:
-          - <|im_end|>
-          - <dummy32000>
-          usage: |
-                curl http://localhost:8080/v1/chat/completions -H "Content-Type: application/json" -d '{
-                    "model": "gpt-4-1106-preview",
-                    "messages": [{"role": "user", "content": "How are you doing?", "temperature": 0.1}]
-                }'
----
-apiVersion: premlabs.io/v1alpha1
 kind: AIDeployment 
 metadata:
   name: phi-2-chat
@@ -43,16 +7,14 @@ spec:
   engine:
     name: "localai" 
     options:
-      imageTag: latest-cpu
+      imageTag: v2.15.0-ffmpeg-core
   endpoint:
     - port: 8080 
       domain: "phi-2-chat.127.0.0.1.nip.io"
   models:
-    - modelMapRef:
-        name: phi-2-chat
-        variant: base
+    - uri: phi-2-chat
   deployment:
-   resources:
+    resources:
       requests:
         cpu: 4
         memory: 8Gi
@@ -60,6 +22,18 @@ spec:
         cpu: 32
         memory: "16Gi"
 ---          
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-config
+data:
+  config.toml: |
+    default_model="openai/phi-2-chat"
+    
+    [[models]]
+    name="openai/phi-2-chat"
+    api_base="http://phi-2-chat:8080/v1"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -76,11 +50,19 @@ spec:
     spec:
       containers:
       - name: elia
-        image: premai/elia
-        env:
-        - name: OPENAI_API_BASE
-          value: "http://phi-2-chat:8080"
+        image: premai/elia:1.7.0
         ports:
         - containerPort: 3000
         stdin: true
         tty: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /root/.config/elia
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: model-config
+          items:
+          - key: config.toml
+            path: config.toml

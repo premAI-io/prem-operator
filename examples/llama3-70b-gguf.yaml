@@ -7,7 +7,7 @@ spec:
       - variant: base
         uri: "huggingface://bartowski/Meta-Llama-3-70B-Instruct-GGUF/Meta-Llama-3-70B-Instruct-Q5_K_M.gguf"
         engineConfigFile: |
-          name: gpt-4-1106-preview
+          name: llama-3-70b-gguf
           mmap: true
           parameters:
             model: huggingface://bartowski/Meta-Llama-3-70B-Instruct-GGUF/Meta-Llama-3-70B-Instruct-Q5_K_M.gguf
@@ -50,7 +50,7 @@ spec:
         major: 7
     startupProbe:
       initialDelaySeconds: 300
-      periodSeconds: 1
+      periodSeconds: 5
       timeoutSeconds: 5
       failureThreshold: 300
     resources:
@@ -64,6 +64,18 @@ spec:
     - name: "DEBUG"
       value: "true"
 --- 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-config
+data:
+  config.toml: |
+    default_model="openai/llama-3-70b-gguf"
+    
+    [[models]]
+    name="openai/llama-3-70b-gguf"
+    api_base="http://llama-3-70b-gguf:8080/v1"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -79,15 +91,23 @@ spec:
         app: llama-3-tui
     spec:
       containers:
-      - name: llama-3-tui
-        image: premai/elia
-        env:
-        - name: OPENAI_API_BASE
-          value: "http://llama-3-70b-gguf:8080"
+      - name: elia
+        image: premai/elia:1.7.0
         ports:
         - containerPort: 3000
         stdin: true
         tty: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /root/.config/elia
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: model-config
+          items:
+          - key: config.toml
+            path: config.toml
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -95,11 +115,11 @@ metadata:
   name: llama-3-cli-conf
 data:
   extra-openai-models.yaml: |
-    - model_id: gpt-4-1106-preview
-      model_name: gpt-4-1106-preview
+    - model_id: llama-3-70b-gguf
+      model_name: llama-3-70b-gguf
       api_base: http://llama-3-70b-gguf:8080
   default_model.txt: |
-    gpt-4-1106-preview
+    llama-3-70b-gguf
 ---
 apiVersion: apps/v1
 kind: Deployment
