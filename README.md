@@ -49,6 +49,8 @@ Feel free to create an issue here or reach out to us on [Prem's Discord](https:/
     - [🤝**Contributing**](./docs/contributing.md)
     - [🎗️**Issues**](./docs/issues.md)
     - [🔧**Troubleshooting**](./docs/troubleshooting.md)
+- **Blogs**
+    - [💡**Introducing Prem-Operator**](https://blog.premai.io/introducing-prem-operator-a-new-open-source-ai-kubernetes-operator/)
 
 ### Simplified Architecture Diagram 
 
