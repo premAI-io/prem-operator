@@ -1,0 +1,27 @@
+apiVersion: premlabs.io/v1alpha1
+kind: AIDeployment
+metadata:
+  name: generic-ollama
+  namespace: default
+spec:
+  engine:
+    name: "generic"
+  deployment:
+    template:
+      spec:
+        containers:
+          - name: "generic-ollama"
+            image: ollama/ollama
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 11434
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 6
+
+    accelerator:
+      interface: "CUDA"
+      minVersion:
+        major: 7
+
