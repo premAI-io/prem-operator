@@ -1,0 +1,58 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: prem-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: AIDeployment is the Schema for the AIDeployment API
+      displayName: AIDeployment
+      kind: AIDeployment
+      name: aideployments.premlabs.io
+      version: v1alpha1
+    - description: AIModelMap is the Schema for the aimodelmaps API
+      displayName: AIModel Map
+      kind: AIModelMap
+      name: aimodelmaps.premlabs.io
+      version: v1alpha1
+    - description: AutoNodeLabeler is the Schema for the autonodelabelers API
+      displayName: Auto Node Labeler
+      kind: AutoNodeLabeler
+      name: autonodelabelers.premlabs.io
+      version: v1alpha1
+  description: Simplified operator for deploying ML models
+  displayName: prem-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - ai
+  - ml
+  links:
+  - name: Prem Operator
+    url: https://prem-operator.domain
+  maintainers:
+  - email: swarnim@premai.io
+    name: premai
+  maturity: alpha
+  provider:
+    name: premlabs
+  version: 0.0.0
